@@ -48,6 +48,11 @@
             <div id="enrollmentGroup">
               <label class="block text-sm font-medium text-blue-900">Enrollment Number</label>
               <input id="enrollmentInput" type="text" placeholder="Enter Enrollment No" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+              <div id="studentNameFallback" class="hidden mt-2">
+                <label class="block text-sm font-medium text-blue-900">Student Name (manual)</label>
+                <input id="studentNameFallbackInput" type="text" placeholder="Enter Student Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                <div class="text-xs text-gray-500 mt-1">Shown when data file is missing</div>
+              </div>
             </div>
             <div id="othersGroup" class="hidden md:col-span-3">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -246,6 +251,8 @@
     const parentPhoneInput = document.getElementById('parentPhoneInput')
     const studentNameInput = document.getElementById('studentNameInput')
     const studentClassInput = document.getElementById('studentClassInput')
+    const studentNameFallback = document.getElementById('studentNameFallback')
+    const studentNameFallbackInput = document.getElementById('studentNameFallbackInput')
     const employeeGroup = document.getElementById('employeeGroup')
     const employeeNoInput = document.getElementById('employeeNoInput')
     const alumniGroup = document.getElementById('alumniGroup')
@@ -305,6 +312,20 @@
       const wb = XLSX.read(buf, { type: 'array' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       studentsRows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+    }
+    async function ensureStudentsLoadedFallback() {
+      if (studentsRows) return
+      try {
+        const API_BASE = (window.API_BASE || '').replace(/\/+$/,'')
+        const resDb = await fetch(`${API_BASE}/.netlify/functions/roster`)
+        if (resDb.ok) {
+          const json = await resDb.json()
+          if (json.success && Array.isArray(json.rows) && json.rows.length) {
+            studentsRows = json.rows
+            return
+          }
+        }
+      } catch(_) {}
     }
     function findStudentByEnrollment(enrollment_no) {
       if (!studentsRows) return null
@@ -495,6 +516,7 @@
       document.getElementById('employeeGroup').classList.toggle('hidden', !showEmployee)
       document.getElementById('alumniGroup').classList.toggle('hidden', !showAlumni)
       if (submitBtn) submitBtn.textContent = showStudent ? 'Search' : 'Submit'
+      if (studentNameFallback) studentNameFallback.classList.add('hidden')
       const qrBtnEl = document.getElementById('qrBtn')
       const qrCardEl = document.getElementById('qrCard')
       const compsEl = document.getElementById('competitionsSection')
@@ -572,7 +594,13 @@
         if (r) { updateTicket({ enrollment_no, name: r.name, row: r.row }) }
         else renderNotFound('Student not found')
       } catch (e) {
-        renderNotFound('Data file missing')
+        await ensureStudentsLoadedFallback()
+        const r2 = findStudentByEnrollment(enrollment_no)
+        if (r2) { updateTicket({ enrollment_no, name: r2.name, row: r2.row }); return }
+        if (studentNameFallback) studentNameFallback.classList.remove('hidden')
+        const enteredName = (studentNameFallbackInput && studentNameFallbackInput.value || '').trim()
+        if (!enteredName) { renderNotFound('Enter name (data file not found)'); return }
+        updateTicket({ enrollment_no, name: enteredName })
       }
     })
 

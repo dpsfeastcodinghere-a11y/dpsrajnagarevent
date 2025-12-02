@@ -10,6 +10,19 @@ app = Flask(__name__, static_folder='')
 def db_conn():
     return psycopg2.connect(DB_URL)
 
+def ensure_roster_table(cur):
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS roster (
+            id SERIAL PRIMARY KEY,
+            enrollment_no VARCHAR(50) UNIQUE,
+            name VARCHAR(255),
+            student_class VARCHAR(50),
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """
+    )
+
 
 @app.route('/')
 def home():
@@ -97,6 +110,66 @@ def list_rows():
     except Exception as e:
         return (jsonify({'success': False, 'error': str(e)}), 500)
 
+@app.route('/.netlify/functions/roster', methods=['GET', 'POST', 'OPTIONS'])
+def roster():
+    if request.method == 'OPTIONS':
+        return ('', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        })
+    try:
+        conn = db_conn()
+        cur = conn.cursor()
+        ensure_roster_table(cur)
+        if request.method == 'GET':
+            cur.execute('SELECT enrollment_no, name, student_class FROM roster ORDER BY id DESC')
+            rows = [
+                {'Enrollment No': r[0] or '', 'Name': r[1] or '', 'Class': r[2] or ''}
+                for r in cur.fetchall()
+            ]
+            cur.close(); conn.close()
+            return jsonify({'success': True, 'rows': rows})
+        data = request.get_json(force=True) or {}
+        enr = (data.get('enrollment_no') or '').strip()
+        nm = (data.get('name') or '').strip()
+        cls = (data.get('student_class') or '').strip()
+        if not enr or not nm:
+            cur.close(); conn.close()
+            return (jsonify({'success': False, 'message': 'enrollment_no and name required'}), 400)
+        # upsert
+        cur.execute(
+            'INSERT INTO roster (enrollment_no, name, student_class) VALUES (%s, %s, %s) 
+             ON CONFLICT (enrollment_no) DO UPDATE SET name = EXCLUDED.name, student_class = EXCLUDED.student_class',
+            (enr, nm, cls)
+        )
+        conn.commit()
+        cur.close(); conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return (jsonify({'success': False, 'error': str(e)}), 500)
+
+@app.route('/.netlify/functions/delete-all', methods=['POST', 'OPTIONS'])
+def delete_all():
+    if request.method == 'OPTIONS':
+        return ('', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Config-Secret',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        })
+    try:
+        secret = request.headers.get('X-Config-Secret') or ''
+        admin_secret = os.environ.get('ADMIN_SECRET', '')
+        if not admin_secret or secret != admin_secret:
+            return (jsonify({'success': False, 'message': 'unauthorized'}), 401)
+        conn = db_conn()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM registrations')
+        conn.commit()
+        cur.close(); conn.close()
+        return jsonify({'success': True, 'message': 'all registrations deleted'})
+    except Exception as e:
+        return (jsonify({'success': False, 'error': str(e)}), 500)
 def run():
     port = int(os.environ.get('PORT', '8000'))
     app.run(host='0.0.0.0', port=port)

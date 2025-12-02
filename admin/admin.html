@@ -18,6 +18,18 @@
   </header>
   <main class="max-w-6xl mx-auto px-6">
     <div id="status" class="mb-3 text-sm"></div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Add Student to Roster (fallback when Excel missing)</div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input id="rosterEnrollment" type="text" placeholder="Enrollment No" class="rounded-md border border-blue-300 px-2 py-1" />
+        <input id="rosterName" type="text" placeholder="Student Name" class="rounded-md border border-blue-300 px-2 py-1" />
+        <input id="rosterClass" type="text" placeholder="Class (optional)" class="rounded-md border border-blue-300 px-2 py-1" />
+      </div>
+      <div class="mt-3">
+        <button id="rosterAddBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Add to Roster</button>
+        <span id="rosterMsg" class="ml-3 text-sm"></span>
+      </div>
+    </div>
     <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-100 text-gray-700">
@@ -45,13 +57,15 @@
   </main>
 
   <script>
+    try { window.API_BASE = localStorage.getItem('API_BASE') || window.API_BASE || '' } catch (_) {}
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
       status.textContent = 'Loading...'
       tbody.innerHTML = ''
       try {
-        const res = await fetch('/admin/data')
+        const base = (window.API_BASE || '').replace(/\/+$/,'')
+        const res = await fetch(`${base}/.netlify/functions/list`)
         const json = await res.json()
         if (!json.success) {
           status.textContent = 'Unable to load data'
@@ -97,7 +111,8 @@
       const secret = prompt('Enter admin secret') || ''
       if (!secret) return
       try {
-        const res = await fetch('/admin/delete-all', { method: 'POST', headers: { 'X-Config-Secret': secret } })
+        const base = (window.API_BASE || '').replace(/\/+$/,'')
+        const res = await fetch(`${base}/.netlify/functions/delete-all`, { method: 'POST', headers: { 'X-Config-Secret': secret } })
         const json = await res.json()
         if (json.success) {
           status.textContent = json.message || 'Deleted'
@@ -111,6 +126,27 @@
         status.textContent = 'Unable to reach server'
         status.className = 'text-red-700'
       }
+    })
+
+    const rosterAddBtn = document.getElementById('rosterAddBtn')
+    if (rosterAddBtn) rosterAddBtn.addEventListener('click', async () => {
+      const enr = document.getElementById('rosterEnrollment').value.trim()
+      const nm = document.getElementById('rosterName').value.trim()
+      const cls = document.getElementById('rosterClass').value.trim()
+      const msg = document.getElementById('rosterMsg')
+      msg.textContent = ''
+      msg.className = 'ml-3 text-sm'
+      if (!enr || !nm) { msg.textContent = 'Enter Enrollment and Name'; msg.className += ' text-red-700'; return }
+      try {
+        const base = (window.API_BASE || '').replace(/\/+$/,'')
+        const res = await fetch(`${base}/.netlify/functions/roster`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enrollment_no: enr, name: nm, student_class: cls })
+        })
+        const json = await res.json()
+        if (json.success) { msg.textContent = 'Added'; msg.className += ' text-green-700' }
+        else { msg.textContent = json.message || 'Failed'; msg.className += ' text-red-700' }
+      } catch (_) { msg.textContent = 'Network error'; msg.className += ' text-red-700' }
     })
   </script>
 </body>
