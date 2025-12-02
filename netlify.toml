@@ -2,6 +2,11 @@
   functions = "netlify/functions"
   publish = "main"
 
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "https://dps-carnival-registration.onrender.com/.netlify/functions/:splat"
+  status = 200
+
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
