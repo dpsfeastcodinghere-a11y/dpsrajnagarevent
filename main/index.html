@@ -233,6 +233,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
+    try { window.API_BASE = localStorage.getItem('API_BASE') || window.API_BASE || '' } catch (_) {}
     const categorySelect = document.getElementById('categorySelect')
     const enrollmentInput = document.getElementById('enrollmentInput')
     const enrollmentGroup = document.getElementById('enrollmentGroup')
@@ -667,9 +668,10 @@
       payload.reg_no = reg_no
       
       
+      const API_BASE = (window.API_BASE || '').replace(/\/+$/,'')
       async function saveToNetlify() {
         try {
-          const res = await fetch('/.netlify/functions/save_to_db', {
+          const res = await fetch(`${API_BASE}/.netlify/functions/save_to_db`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -972,7 +974,7 @@
         try {
           // 1. Try fetching from SQL Database (via Netlify Function)
           try {
-            const resDb = await fetch('/.netlify/functions/list')
+            const resDb = await fetch(`${API_BASE}/.netlify/functions/list`)
             if (resDb.ok) {
               const json = await resDb.json()
               if (json.success && Array.isArray(json.rows) && json.rows.length > 0) {
