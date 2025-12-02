@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Registrations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50">
+  <header class="py-6 px-6 max-w-6xl mx-auto flex items-center justify-between">
+    <div class="text-2xl font-bold text-blue-900">Admin Panel</div>
+    <div class="flex items-center gap-3">
+      <a href="/static-site/student-data.xlsx" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Download Student Data Excel</a>
+      <a href="/static-site/export.xlsx" class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Download Excel</a>
+      <button id="deleteAll" class="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700">Delete All</button>
+      <a href="/" class="inline-flex items-center rounded-md border border-blue-200 px-4 py-2 text-blue-700">Back</a>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-6">
+    <div id="status" class="mb-3 text-sm"></div>
+    <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr>
+            <th class="px-3 py-2 text-left">Timestamp</th>
+            <th class="px-3 py-2 text-left">Type</th>
+            <th class="px-3 py-2 text-left">Enrollment No</th>
+            <th class="px-3 py-2 text-left">Name</th>
+            <th class="px-3 py-2 text-left">Phone</th>
+            <th class="px-3 py-2 text-left">Age</th>
+            <th class="px-3 py-2 text-left">Employee No</th>
+            <th class="px-3 py-2 text-left">Last Class</th>
+            <th class="px-3 py-2 text-left">Organisation</th>
+            <th class="px-3 py-2 text-left">Address</th>
+            <th class="px-3 py-2 text-left">Parent Name</th>
+            <th class="px-3 py-2 text-left">Parent Phone</th>
+            <th class="px-3 py-2 text-left">Student Name</th>
+            <th class="px-3 py-2 text-left">Student Class</th>
+            <th class="px-3 py-2 text-left">Competitions</th>
+          </tr>
+        </thead>
+        <tbody id="rows" class="divide-y divide-gray-200 text-gray-900"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    async function loadData(){
+      const status = document.getElementById('status')
+      const tbody = document.getElementById('rows')
+      status.textContent = 'Loading...'
+      tbody.innerHTML = ''
+      try {
+        const res = await fetch('/admin/data')
+        const json = await res.json()
+        if (!json.success) {
+          status.textContent = 'Unable to load data'
+          status.className = 'text-red-700'
+          return
+        }
+        const rows = json.rows || []
+        status.textContent = `${rows.length} records`
+        status.className = 'text-gray-700'
+        for (const r of rows) {
+          const tr = document.createElement('tr')
+          tr.innerHTML = `
+            <td class="px-3 py-2">${r.timestamp || ''}</td>
+            <td class="px-3 py-2">${r.type || ''}</td>
+            <td class="px-3 py-2">${r.enrollment_no || ''}</td>
+            <td class="px-3 py-2">${r.name || ''}</td>
+            <td class="px-3 py-2">${r.phone || ''}</td>
+            <td class="px-3 py-2">${r.age || ''}</td>
+            <td class="px-3 py-2">${r.employee_no || ''}</td>
+            <td class="px-3 py-2">${r.last_class || ''}</td>
+            <td class="px-3 py-2">${r.org_name || ''}</td>
+            <td class="px-3 py-2">${r.org_addr || ''}</td>
+            <td class="px-3 py-2">${r.parent_name || ''}</td>
+            <td class="px-3 py-2">${r.parent_phone || ''}</td>
+            <td class="px-3 py-2">${r.student_name || ''}</td>
+            <td class="px-3 py-2">${r.student_class || ''}</td>
+            <td class="px-3 py-2">${r.competitions || ''}</td>
+          `
+          tbody.appendChild(tr)
+        }
+      } catch (e) {
+        status.textContent = 'Unable to reach server'
+        status.className = 'text-red-700'
+      }
+    }
+    loadData()
+
+    const delBtn = document.getElementById('deleteAll')
+    if (delBtn) delBtn.addEventListener('click', async () => {
+      const status = document.getElementById('status')
+      const ok = confirm('Delete ALL registrations? This cannot be undone.')
+      if (!ok) return
+      const secret = prompt('Enter admin secret') || ''
+      if (!secret) return
+      try {
+        const res = await fetch('/admin/delete-all', { method: 'POST', headers: { 'X-Config-Secret': secret } })
+        const json = await res.json()
+        if (json.success) {
+          status.textContent = json.message || 'Deleted'
+          status.className = 'text-green-700'
+          await loadData()
+        } else {
+          status.textContent = json.message || 'Unable to delete'
+          status.className = 'text-red-700'
+        }
+      } catch (e) {
+        status.textContent = 'Unable to reach server'
+        status.className = 'text-red-700'
+      }
+    })
+  </script>
+</body>
+</html>

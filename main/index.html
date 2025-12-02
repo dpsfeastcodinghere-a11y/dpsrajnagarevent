@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>समन्वय हाट - Carnival 2025</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rye&display=swap" rel="stylesheet">
+  <style>
+    body { background: radial-gradient(circle at 20% 10%, #fffdf5 0, #fffdf5 40%, #fef7e6 100%); }
+    .sunburst { background-image: repeating-conic-gradient(rgba(185,28,28,0.06) 0deg, rgba(185,28,28,0.06) 15deg, transparent 15deg, transparent 30deg); background-size: 120% 120%; opacity: 0.8; }
+    .ticket { background: #fffdf5; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-radius: 18px; position: relative; }
+    .ticket:before { content: ""; position: absolute; inset: -2px; border-radius: 20px; padding: 2px; background: linear-gradient(135deg, #b91c1c, #1e3a8a); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+    .cutouts:before, .cutouts:after { content: ""; position: absolute; width: 22px; height: 22px; background: radial-gradient(circle at 50% 50%, transparent 12px, #fffdf5 13px); z-index: 2; }
+    .cutouts:before { top: -11px; left: -11px; border-radius: 50%; }
+    .cutouts:after { bottom: -11px; right: -11px; border-radius: 50%; }
+    .title-font { font-family: 'Rye', cursive; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="sunburst absolute inset-0 pointer-events-none"></div>
+  <header class="py-6 px-6 max-w-5xl mx-auto flex items-center gap-4">
+    <img src="/image.png" alt="DPS Rajnagar Logo" class="h-14 w-auto" onerror="this.style.display='none'">
+    <div>
+      <h1 class="text-3xl md:text-4xl tracking-tight text-red-800 font-bold" style="font-family: Arial, Helvetica, sans-serif;">DPS Rajnagar, Ghaziabad 'समन्वय हाट' - Carnival 2025</h1>
+      <p class="mt-1 text-sm md:text-base text-blue-900">Registration Form</p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4">
+    <section class="ticket cutouts p-6">
+      <div class="grid grid-cols-1 gap-0">
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label class="block text-sm font-medium text-blue-900">Category</label>
+              <select id="categorySelect" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+                <option>Student</option>
+                <option>Parent</option>
+                <option>Employee</option>
+                <option>Alumni</option>
+                <option>Others</option>
+              </select>
+            </div>
+            <div id="enrollmentGroup">
+              <label class="block text-sm font-medium text-blue-900">Enrollment Number</label>
+              <input id="enrollmentInput" type="text" placeholder="Enter Enrollment No" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+            </div>
+            <div id="othersGroup" class="hidden md:col-span-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Name</label>
+                  <input id="nameInput" type="text" placeholder="Enter Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Age</label>
+                  <input id="ageInput" type="number" min="0" placeholder="Enter Age" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Phone Number</label>
+                  <input id="phoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  
+                </div>
+              </div>
+            </div>
+
+            <div id="employeeGroup" class="hidden md:col-span-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Employee ID</label>
+                  <input id="employeeNoInput" type="text" placeholder="Enter Employee ID" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
+
+            <div id="alumniGroup" class="hidden md:col-span-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Name</label>
+                  <input id="alumniNameInput" type="text" placeholder="Enter Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Last Class Studied at DPS RN</label>
+                  <input id="alumniLastClassInput" type="text" placeholder="Enter Last Class" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Name of Organisation Presently Working/Studying </label>
+                  <input id="alumniOrgNameInput" type="text" placeholder="Enter Organisation/Institution Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Address of Organisation</label>
+                  <input id="alumniOrgAddrInput" type="text" placeholder="Enter Address" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
+            <div id="parentGroup" class="hidden md:col-span-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Parent Name</label>
+                  <input id="parentNameInput" type="text" placeholder="Enter Parent Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Parent Phone</label>
+                  <input id="parentPhoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Student Name</label>
+                  <input id="studentNameInput" type="text" placeholder="Enter Student Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Student Class</label>
+                  <select id="studentClassInput" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select Class</option>
+                    <option>Nursery</option>
+                    <option>Prep 1</option>
+                    <option>Prep 2</option>
+                    <option>Grade 1</option>
+                    <option>Grade 2</option>
+                    <option>Grade 3</option>
+                    <option>Grade 4</option>
+                    <option>Grade 5</option>
+                    <option>Grade 6</option>
+                    <option>Grade 7</option>
+                    <option>Grade 8</option>
+                    <option>Grade 9</option>
+                    <option>Grade 10</option>
+                    <option>Grade 11</option>
+                    <option>Grade 12</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="md:col-span-3">
+              <button id="submitBtn" class="mt-3 inline-flex items-center justify-center rounded-md bg-yellow-500 px-4 py-2 text-lg text-blue-900 font-bold hover:bg-yellow-400 w-auto">Submit</button>
+            </div>
+            <div id="competitionsSection" class="hidden md:col-span-3 mt-4">
+              <div class="text-sm font-semibold text-red-800">Register for Competitions (optional)</div>
+              <div class="mt-2 space-y-2 text-blue-900">
+                <label class="flex items-start gap-2"><input id="compWalkNurLkgUkg" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Walk with Mom/Dad (Nursery, LKG, UKG)</span></label>
+                <label class="flex items-start gap-2"><input id="compPoemNurLkgUkg" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Poem Recitation (Nursery, LKG, UKG)</span></label>
+                <label class="flex items-start gap-2"><input id="compDressG1G2" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Dress up like a story character (Grade 1–2)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG1G3" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 1-3)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG4G6" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 4-6)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG7G9" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 7-9)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG1G2G3" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 1–3)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG4G5G6" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 4–6)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG7G8G9" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 7–9)</span></label>
+                <label class="flex items-start gap-2"><input id="compNone" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>No competitions</span></label>
+                <div class="text-xs text-blue-900 mt-2">For talent shows, participants will bring their own material; only the stage will be provided.</div>
+                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 1-3), children have to bring their own pencil, eraser and crayons.</div>
+                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 4-9), children have to bring their own pencil, eraser and watercolors.</div>
+              </div>
+            </div>
+          </div>
+          <div id="detailsTable" class="mt-6 overflow-hidden rounded-md border border-blue-100 hidden">
+            <table class="min-w-full divide-y divide-blue-100">
+              <tbody id="detailsBody" class="divide-y divide-blue-100"></tbody>
+            </table>
+          </div>
+          <div class="mt-4">
+            <button id="qrBtn" class="hidden inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">Generate QR Code</button>
+          </div>
+          <div id="qrCard" class="hidden mt-4 ticket cutouts p-6">
+            <div class="flex items-center gap-4">
+              <img src="/image.png" alt="DPS Rajnagar Logo" class="h-16 w-auto" onerror="this.style.display='none'">
+              <div class="leading-tight">
+                <div class="text-2xl md:text-3xl text-red-800 font-bold">DPS Rajnagar</div>
+                <div class="text-lg md:text-xl text-blue-900">समन्वय हाट 2025</div>
+                <div class="text-base md:text-lg text-blue-900">Entry Ticket</div>
+              </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div id="qrDetails" class="text-blue-900"></div>
+              <div class="flex items-center justify-center flex-col -mt-2">
+                <div id="qrCanvas"></div>
+                <div class="mt-2 text-xl md:text-2xl font-bold text-red-800">Scan me</div>
+              </div>
+            </div>
+            <div class="mt-4 text-center text-xs md:text-sm text-blue-900">
+              Note: Each person will have their own ticket.
+            </div>
+          </div>
+          <div class="mt-2">
+            <button id="downloadBtn" class="hidden inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Download Ticket</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="resultContainer" class="mt-4"></section>
+  </main>
+
+  <div id="modalBackdrop" class="fixed inset-0 bg-black/40 hidden"></div>
+  <div id="addModal" class="fixed inset-0 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-xl bg-white rounded-xl shadow-xl p-8">
+      <h2 class="text-lg font-semibold text-green-800">Add Member</h2>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-green-900">Enrollment No</label>
+          <input id="addEnrollment" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-green-900">Category</label>
+          <select id="addCategory" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+            <option>Current Student (DPS Rajnagar)</option>
+            <option>Others</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-green-900">Father Name</label>
+          <input id="addFather" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-green-900">Mother Name</label>
+          <input id="addMother" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-green-900">Sibling Name</label>
+          <input id="addSibling" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="closeModal" class="rounded-md border border-green-200 px-4 py-2 text-green-700">Cancel</button>
+        <button id="saveMember" class="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">Save</button>
+      </div>
+      <div id="addStatus" class="mt-3 text-sm"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const categorySelect = document.getElementById('categorySelect')
+    const enrollmentInput = document.getElementById('enrollmentInput')
+    const enrollmentGroup = document.getElementById('enrollmentGroup')
+    const othersGroup = document.getElementById('othersGroup')
+    const nameInput = document.getElementById('nameInput')
+    const ageInput = document.getElementById('ageInput')
+    const phoneInput = document.getElementById('phoneInput')
+    const parentGroup = document.getElementById('parentGroup')
+    const parentNameInput = document.getElementById('parentNameInput')
+    const parentPhoneInput = document.getElementById('parentPhoneInput')
+    const studentNameInput = document.getElementById('studentNameInput')
+    const studentClassInput = document.getElementById('studentClassInput')
+    const employeeGroup = document.getElementById('employeeGroup')
+    const employeeNoInput = document.getElementById('employeeNoInput')
+    const alumniGroup = document.getElementById('alumniGroup')
+    const alumniNameInput = document.getElementById('alumniNameInput')
+    const alumniLastClassInput = document.getElementById('alumniLastClassInput')
+    const alumniOrgNameInput = document.getElementById('alumniOrgNameInput')
+    const alumniOrgAddrInput = document.getElementById('alumniOrgAddrInput')
+    const submitBtn = document.getElementById('submitBtn')
+    const resultContainer = document.getElementById('resultContainer')
+    const compWalkNurLkgUkg = document.getElementById('compWalkNurLkgUkg')
+    const compPoemNurLkgUkg = document.getElementById('compPoemNurLkgUkg')
+    const compDressG1G2 = document.getElementById('compDressG1G2')
+    const compArtG1G3 = document.getElementById('compArtG1G3')
+    const compArtG4G6 = document.getElementById('compArtG4G6')
+    const compArtG7G9 = document.getElementById('compArtG7G9')
+    const compTalentG1G2G3 = document.getElementById('compTalentG1G2G3')
+    const compTalentG4G5G6 = document.getElementById('compTalentG4G5G6')
+    const compTalentG7G8G9 = document.getElementById('compTalentG7G8G9')
+    const compNone = document.getElementById('compNone')
+    const downloadBtn = document.getElementById('downloadBtn')
+    
+
+    let currentType = null
+    let currentPayload = null
+    
+
+    let studentsRows = null
+    let studentFileUrl = null
+    function normKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '') }
+    function pick(row, names) { for (const k of Object.keys(row)) { const n = normKey(k); for (const name of names) { if (n === normKey(name)) return row[k] } } return null }
+    async function resolveStudentFileUrl() {
+      if (studentFileUrl) return studentFileUrl
+      const candidates = [
+        '/main/STUDENT LIST AS ON 1.12.25.xlsx',
+        '/main/STUDENT%20LIST%20AS%20ON%201.12.25.xlsx',
+        '/STUDENT LIST AS ON 1.12.25.xlsx',
+        '/admin/student data.xlsx',
+        '/student data.xlsx',
+        '/admin/student.xlsx','/admin/student.xls','/admin/student.xl',
+        '/student.xlsx','/student.xls','/student.xl'
+      ]
+      for (const url of candidates) {
+        try {
+          const tryUrl = encodeURI(url)
+          const res = await fetch(tryUrl, { cache: 'no-cache' })
+          if (res.ok) { studentFileUrl = tryUrl; return studentFileUrl }
+        } catch (_) {}
+      }
+      throw new Error('Data file not found')
+    }
+    async function ensureStudentsLoaded() {
+      if (studentsRows) return
+      const url = await resolveStudentFileUrl()
+      const res = await fetch(url, { cache: 'no-cache' })
+      if (!res.ok) throw new Error('Data file not found')
+      const buf = await res.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      studentsRows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+    }
+    function findStudentByEnrollment(enrollment_no) {
+      if (!studentsRows) return null
+      const target = normKey(enrollment_no)
+      const keyCandidates = [
+        'Enrollment No', 'Enrollment', 'Enrollment Number', 'enrollment_no',
+        'Enrollment No.', 'Enrolment No', 'Enrol No', 'Adm No', 'Admission No',
+        'Scholar No', 'Roll No', 'Reg No', 'Registration No'
+      ]
+      for (const row of studentsRows) {
+        let enr = pick(row, keyCandidates)
+        if (!enr) {
+          // Fallback: find any key containing an enrollment-like term
+          for (const k of Object.keys(row)) {
+            const nk = normKey(k)
+            if (nk.includes('enrollment') || nk.includes('enrol') || nk.includes('admission') || nk.includes('adm') || nk.includes('reg') || nk.includes('roll')) {
+              enr = row[k]
+              break
+            }
+          }
+        }
+        const canon = normKey(enr)
+        if (canon && canon === target) {
+          const name = pick(row, ['Name', 'Student Name', 'Full Name', "Student's Name"]) || ''
+          return { name: String(name).trim(), row }
+        }
+      }
+      return null
+    }
+
+    async function fetchSheetRows() {
+      try {
+        const sid = window.SHEET_ID
+        const gid = window.SHEET_GID || '0'
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${encodeURIComponent(gid)}`
+        const res = await fetch(csvUrl, { cache: 'no-cache' })
+        if (!res.ok) return []
+        const text = await res.text()
+        const lines = text.split(/\r?\n/).filter(Boolean)
+        if (!lines.length) return []
+        const headers = lines[0].split(',').map(h => h.trim())
+        const rows = []
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
+          const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
+          const obj = {}
+          headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
+          rows.push(obj)
+        }
+        return rows
+      } catch (_) { return [] }
+    }
+
+    function normVal(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '') }
+    function rowHas(rows, keyList, value) {
+      const target = normVal(value)
+      for (const r of rows) {
+        for (const k of Object.keys(r)) {
+          const nk = normKey(k)
+          for (const want of keyList) {
+            if (nk.includes(normKey(want))) {
+              if (normVal(r[k]) === target) return true
+            }
+          }
+        }
+      }
+      return false
+    }
+    async function hasDuplicate(payload) {
+      const rows = await fetchSheetRows()
+      if (!rows.length) return false
+      if (payload.type === 'student' && payload.enrollment_no) {
+        return rowHas(rows, ['Enrollment', 'Enrollment No', 'Admission No', 'Enrollment Number'], payload.enrollment_no)
+      }
+      if (payload.type === 'parent') {
+        if (payload.parent_phone && rowHas(rows, ['Parent Phone', 'Phone', 'Contact'], payload.parent_phone)) return true
+        if (payload.student_name && payload.student_class) {
+          const nm = normVal(payload.student_name)
+          const cls = normVal(payload.student_class)
+          for (const r of rows) {
+            const rn = normVal(r['Student Name'] || r['Name'] || '')
+            const rc = normVal(r['Student Class'] || r['Class'] || '')
+            if (rn === nm && rc === cls) return true
+          }
+        }
+        return false
+      }
+      if (payload.type === 'employee' && payload.employee_no) {
+        return rowHas(rows, ['Employee No', 'Emp No', 'Employee'], payload.employee_no)
+      }
+      if (payload.type === 'alumni' && payload.name && payload.last_class) {
+        const nm = normVal(payload.name)
+        const lc = normVal(payload.last_class)
+        for (const r of rows) {
+          const rn = normVal(r['Name'] || '')
+          const rl = normVal(r['Last Class'] || r['Last Class at DPS RN'] || '')
+          if (rn === nm && rl === lc) return true
+        }
+        return false
+      }
+      if (payload.type === 'others' && payload.phone) {
+        if (rowHas(rows, ['Phone', 'Contact'], payload.phone)) return true
+        return false
+      }
+      return false
+    }
+    function updateTicket(data) {
+      const body = document.getElementById('detailsBody')
+      body.innerHTML = `
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Enrollment No</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${data.enrollment_no}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Name</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${data.name || ''}</td>
+        </tr>
+      `
+      document.getElementById('detailsTable').classList.remove('hidden')
+      const compsEl = document.getElementById('competitionsSection')
+      if (compsEl) compsEl.classList.remove('hidden')
+      const qrBtnEl = document.getElementById('qrBtn')
+      if (qrBtnEl) qrBtnEl.classList.remove('hidden')
+      currentType = 'student'
+      currentPayload = {
+        enrollment_no: data.enrollment_no,
+        name: data.name || ''
+      }
+      submitBtn.disabled = false
+    }
+
+    function updateOthersTicket(name, phone, age) {
+      const body = document.getElementById('detailsBody')
+      body.innerHTML = `
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Name</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${name}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Phone Number</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${phone}</td>
+        </tr>
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Age</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${age}</td>
+        </tr>
+      `
+      document.getElementById('detailsTable').classList.remove('hidden')
+      const compsEl = document.getElementById('competitionsSection')
+      if (compsEl) compsEl.classList.remove('hidden')
+      const qrBtnEl = document.getElementById('qrBtn')
+      if (qrBtnEl) qrBtnEl.classList.remove('hidden')
+      currentType = 'others'
+      currentPayload = { name, phone, age }
+      submitBtn.disabled = false
+    }
+
+    function updateParentTicket(pname, phone, sname, sclass) {
+      const body = document.getElementById('detailsBody')
+      body.innerHTML = `
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Parent Name</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${pname}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Parent Phone</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${phone}</td>
+        </tr>
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Student Name</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${sname}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Student Class</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${sclass}</td>
+        </tr>
+      `
+      document.getElementById('detailsTable').classList.remove('hidden')
+      const compsEl = document.getElementById('competitionsSection')
+      if (compsEl) compsEl.classList.remove('hidden')
+      const qrBtnEl = document.getElementById('qrBtn')
+      if (qrBtnEl) qrBtnEl.classList.remove('hidden')
+      currentType = 'parent'
+      currentPayload = { parent_name: pname, parent_phone: phone, student_name: sname, student_class: sclass }
+      submitBtn.disabled = false
+    }
+
+    function updateEmployeeTicket(emp_no) {
+      const body = document.getElementById('detailsBody')
+      body.innerHTML = `
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Employee No</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${emp_no}</td>
+        </tr>
+      `
+      document.getElementById('detailsTable').classList.remove('hidden')
+      const compsEl = document.getElementById('competitionsSection')
+      if (compsEl) compsEl.classList.remove('hidden')
+      const qrBtnEl = document.getElementById('qrBtn')
+      if (qrBtnEl) qrBtnEl.classList.remove('hidden')
+      currentType = 'employee'
+      currentPayload = { employee_no: emp_no }
+      submitBtn.disabled = false
+    }
+
+    function updateAlumniTicket(name, last_class, org_name, org_addr) {
+      const body = document.getElementById('detailsBody')
+      body.innerHTML = `
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Name</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${name}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Last Class at DPS RN</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${last_class}</td>
+        </tr>
+        <tr class="bg-red-50/40">
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Presently Working/Studying</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${org_name}</td>
+        </tr>
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-red-800">Organisation Address</th>
+          <td class="px-4 py-3 text-blue-900 font-medium">${org_addr}</td>
+        </tr>
+      `
+      document.getElementById('detailsTable').classList.remove('hidden')
+      const compsEl = document.getElementById('competitionsSection')
+      if (compsEl) compsEl.classList.remove('hidden')
+      const qrBtnEl = document.getElementById('qrBtn')
+      if (qrBtnEl) qrBtnEl.classList.remove('hidden')
+      currentType = 'alumni'
+      currentPayload = { name, last_class, org_name, org_addr }
+      submitBtn.disabled = false
+    }
+
+    function toggleInputs() {
+      const val = categorySelect.value
+      const showStudent = (val === 'Student')
+      const showParent = (val === 'Parent')
+      const showOthers = (val === 'Others')
+      const showEmployee = (val === 'Employee')
+      const showAlumni = (val === 'Alumni')
+      enrollmentGroup.classList.toggle('hidden', !showStudent)
+      parentGroup.classList.toggle('hidden', !showParent)
+      othersGroup.classList.toggle('hidden', !showOthers)
+      document.getElementById('employeeGroup').classList.toggle('hidden', !showEmployee)
+      document.getElementById('alumniGroup').classList.toggle('hidden', !showAlumni)
+      if (submitBtn) submitBtn.textContent = showStudent ? 'Search' : 'Submit'
+      const qrBtnEl = document.getElementById('qrBtn')
+      const qrCardEl = document.getElementById('qrCard')
+      const compsEl = document.getElementById('competitionsSection')
+      if (qrBtnEl) qrBtnEl.classList.add('hidden')
+      if (qrCardEl) qrCardEl.classList.add('hidden')
+      if (compsEl) compsEl.classList.add('hidden')
+      if (downloadBtn) downloadBtn.classList.add('hidden')
+    }
+    toggleInputs()
+    categorySelect.addEventListener('change', toggleInputs)
+
+    function renderNotFound(msg) {
+      resultContainer.innerHTML = `
+        <div class="rounded-md bg-red-50 p-4 border border-red-100">
+          <div class="text-red-800 font-medium">${msg || 'Student not found'}</div>
+        </div>
+      `
+      const qrBtnEl = document.getElementById('qrBtn')
+      const qrCardEl = document.getElementById('qrCard')
+      const compsEl = document.getElementById('competitionsSection')
+      if (qrBtnEl) qrBtnEl.classList.add('hidden')
+      if (qrCardEl) qrCardEl.classList.add('hidden')
+      if (compsEl) compsEl.classList.add('hidden')
+      if (downloadBtn) downloadBtn.classList.add('hidden')
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      const qrBtnEl = document.getElementById('qrBtn')
+      const qrCardEl = document.getElementById('qrCard')
+      const compsEl = document.getElementById('competitionsSection')
+      if (qrBtnEl) qrBtnEl.classList.add('hidden')
+      if (qrCardEl) qrCardEl.classList.add('hidden')
+      if (compsEl) compsEl.classList.add('hidden')
+      resultContainer.innerHTML = ''
+      const category = categorySelect.value
+      if (category === 'Others') {
+        const name = (nameInput.value || '').trim()
+        const age = (ageInput.value || '').trim()
+        const phone = (phoneInput.value || '').trim()
+        const phoneDigits = phone.replace(/\D/g, '')
+        if (!name || !age || phoneDigits.length !== 10) return renderNotFound('Enter name, age and 10-digit phone')
+        updateOthersTicket(name, phoneDigits, age)
+        return
+      }
+      if (category === 'Employee') {
+        const emp_no = (employeeNoInput.value || '').trim()
+        if (!emp_no) return renderNotFound('Enter employee number')
+        updateEmployeeTicket(emp_no)
+        return
+      }
+      if (category === 'Alumni') {
+        const name = (alumniNameInput.value || '').trim()
+        const last_class = (alumniLastClassInput.value || '').trim()
+        const org_name = (alumniOrgNameInput.value || '').trim()
+        const org_addr = (alumniOrgAddrInput.value || '').trim()
+        if (!name || !last_class || !org_name || !org_addr) return renderNotFound('Fill all alumni fields')
+        updateAlumniTicket(name, last_class, org_name, org_addr)
+        return
+      }
+      if (category === 'Parent') {
+        const pname = (parentNameInput.value || '').trim()
+        const pphone = (parentPhoneInput.value || '').trim()
+        const sname = (studentNameInput.value || '').trim()
+        const sclass = (studentClassInput.value || '').trim()
+        const phoneDigits = pphone.replace(/\D/g, '')
+        if (!pname || phoneDigits.length !== 10 || !sname || !sclass) return renderNotFound('Fill parent name, phone, student name, class')
+        updateParentTicket(pname, phoneDigits, sname, sclass)
+        return
+      }
+      const enrollment_no = enrollmentInput.value.trim()
+      if (!enrollment_no) return renderNotFound('Enter an enrollment number')
+      try {
+        await ensureStudentsLoaded()
+        const r = findStudentByEnrollment(enrollment_no)
+        if (r) { updateTicket({ enrollment_no, name: r.name, row: r.row }) }
+        else renderNotFound('Student not found')
+      } catch (e) {
+        renderNotFound('Data file missing')
+      }
+    })
+
+    const addMemberBtn = document.getElementById('addMemberBtn')
+    const addModal = document.getElementById('addModal')
+    const modalBackdrop = document.getElementById('modalBackdrop')
+    const closeModalBtn = document.getElementById('closeModal')
+    const saveMemberBtn = document.getElementById('saveMember')
+    const addStatus = document.getElementById('addStatus')
+    const addEnrollment = document.getElementById('addEnrollment')
+    const addCategory = document.getElementById('addCategory')
+    const addFather = document.getElementById('addFather')
+    const addMother = document.getElementById('addMother')
+    const addSibling = document.getElementById('addSibling')
+
+    function openModal() {
+      addStatus.textContent = ''
+      addModal.classList.remove('hidden')
+      modalBackdrop.classList.remove('hidden')
+    }
+    function closeModal() {
+      addModal.classList.add('hidden')
+      modalBackdrop.classList.add('hidden')
+    }
+
+    if (addMemberBtn) addMemberBtn.addEventListener('click', openModal)
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal)
+    if (modalBackdrop) modalBackdrop.addEventListener('click', closeModal)
+
+    if (saveMemberBtn) saveMemberBtn.addEventListener('click', async () => {
+      const enrollment_no = addEnrollment.value.trim()
+      const category = addCategory.value
+      const father_name = addFather.value.trim()
+      const mother_name = addMother.value.trim()
+      const sibling_name = addSibling.value.trim()
+      if (!enrollment_no || !category || !father_name || !mother_name) {
+        addStatus.textContent = 'Fill required fields'
+        addStatus.className = 'text-red-700'
+        return
+      }
+      try {
+        const res = await fetch('/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enrollment_no, category, father_name, mother_name, sibling_name })
+        })
+        const json = await res.json()
+        if (json.success) {
+          addStatus.textContent = 'Member added'
+          addStatus.className = 'text-green-700'
+          setTimeout(() => closeModal(), 1000)
+        } else {
+          addStatus.textContent = json.message || 'Unable to save'
+          addStatus.className = 'text-red-700'
+        }
+      } catch (e) {
+        addStatus.textContent = 'Unable to reach server'
+        addStatus.className = 'text-red-700'
+      }
+    })
+
+    const qrBtn = document.getElementById('qrBtn')
+    function clearNode(node) {
+      while (node && node.firstChild) node.removeChild(node.firstChild)
+    }
+    async function renderQrTicket() {
+      if (!currentPayload) return
+      const details = document.getElementById('qrDetails')
+      const qrCanvas = document.getElementById('qrCanvas')
+      const qrCard = document.getElementById('qrCard')
+      const comps = (function(){
+        if (compNone && compNone.checked) return []
+        const items = []
+        if (compWalkNurLkgUkg && compWalkNurLkgUkg.checked) items.push('Walk with Mom/Dad (Nursery, LKG, UKG)')
+        if (compPoemNurLkgUkg && compPoemNurLkgUkg.checked) items.push('Poem Recitation (Nursery, LKG, UKG)')
+        if (compDressG1G2 && compDressG1G2.checked) items.push('Dress up like a story character (Grade 1–2)')
+        if (compArtG1G3 && compArtG1G3.checked) items.push('Art competition (Grade 1-3)')
+        if (compArtG4G6 && compArtG4G6.checked) items.push('Art competition (Grade 4-6)')
+        if (compArtG7G9 && compArtG7G9.checked) items.push('Art competition (Grade 7-9)')
+        if (compTalentG1G2G3 && compTalentG1G2G3.checked) items.push('Talent Show (Grade 1–3)')
+        if (compTalentG4G5G6 && compTalentG4G5G6.checked) items.push('Talent Show (Grade 4–6)')
+        if (compTalentG7G8G9 && compTalentG7G8G9.checked) items.push('Talent Show (Grade 7–9)')
+        return items
+      })()
+      const payload = { type: currentType, competitions: comps, timestamp: new Date().toISOString() }
+      if (currentType === 'student') { payload.enrollment_no = currentPayload.enrollment_no; payload.name = currentPayload.name }
+      else if (currentType === 'parent') { payload.parent_name = currentPayload.parent_name; payload.parent_phone = currentPayload.parent_phone; payload.student_name = currentPayload.student_name; payload.student_class = currentPayload.student_class }
+      else if (currentType === 'employee') { payload.employee_no = currentPayload.employee_no }
+      else if (currentType === 'alumni') { payload.name = currentPayload.name; payload.last_class = currentPayload.last_class; payload.org_name = currentPayload.org_name; payload.org_addr = currentPayload.org_addr }
+      else { payload.name = currentPayload.name; payload.age = currentPayload.age; payload.phone = currentPayload.phone }
+      // Only send to Google Sheets via Apps Script
+      const reg_no = `REG-${Date.now().toString(36).toUpperCase()}`
+      payload.reg_no = reg_no
+      if (await hasDuplicate(payload)) {
+        resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered</div></div>`
+        return
+      }
+      const scriptURL = window.SHEET_SCRIPT_URL || 'YOUR_GOOGLE_APPS_SCRIPT_URL'
+      async function saveToGoogle() {
+        try {
+          const fd = new FormData()
+          for (const k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) fd.append(k, Array.isArray(payload[k]) ? payload[k].join(', ') : String(payload[k])) }
+          let sid = window.SHEET_ID
+          if (sid && sid.includes('/d/')) { try { sid = sid.split('/d/')[1].split('/')[0] } catch (_) {} }
+          if (sid) fd.append('sheet_id', sid)
+          fd.append('sheet_tab', 'Sheet1')
+          fd.append('sheet_gid', '0')
+          if (!scriptURL) return false
+          await fetch(scriptURL, { method: 'POST', body: fd, mode: 'no-cors' })
+          return true
+        } catch (_) { return false }
+      }
+      async function saveToNetlify() {
+        try {
+          const res = await fetch('/.netlify/functions/save_to_db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          if (!res.ok) return false
+          const json = await res.json()
+          return json.success
+        } catch (_) { return false }
+      }
+
+      const [googleOk, netlifyOk] = await Promise.all([saveToGoogle(), saveToNetlify()])
+      const ok = googleOk || netlifyOk
+      if (ok) {
+        try { const list = JSON.parse(localStorage.getItem('registrations') || '[]'); list.push(payload); localStorage.setItem('registrations', JSON.stringify(list)) } catch (_) {}
+      }
+      resultContainer.innerHTML = ok
+        ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
+        : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`
+      if (currentType === 'student') {
+        details.innerHTML = `
+          <div class="text-sm md:text-base">
+            <div class="font-semibold text-red-800">Enrollment No</div>
+            <div class="mb-2">${currentPayload.enrollment_no}</div>
+            <div class="font-semibold text-red-800">Name</div>
+            <div class="mb-2">${currentPayload.name}</div>
+            <div class="font-semibold text-red-800 mt-2">Competitions Enrolled</div>
+            <div>${comps.length ? comps.join(', ') : 'None'}</div>
+          </div>
+        `
+      } else if (currentType === 'employee') {
+        details.innerHTML = `
+          <div class="text-sm md:text-base">
+            <div class="font-semibold text-red-800">Employee No</div>
+            <div class="mb-2">${currentPayload.employee_no}</div>
+            <div class="font-semibold text-red-800 mt-2">Competitions Enrolled</div>
+            <div>${comps.length ? comps.join(', ') : 'None'}</div>
+          </div>
+        `
+      } else if (currentType === 'alumni') {
+        details.innerHTML = `
+          <div class="text-sm md:text-base">
+            <div class="font-semibold text-red-800">Name</div>
+            <div class="mb-2">${currentPayload.name}</div>
+            <div class="font-semibold text-red-800">Last Class at DPS RN</div>
+            <div class="mb-2">${currentPayload.last_class}</div>
+            <div class="font-semibold text-red-800">Presently Working/Studying</div>
+            <div class="mb-2">${currentPayload.org_name}</div>
+            <div class="font-semibold text-red-800">Organisation Address</div>
+            <div class="mb-2">${currentPayload.org_addr}</div>
+            <div class="font-semibold text-red-800 mt-2">Competitions Enrolled</div>
+            <div>${comps.length ? comps.join(', ') : 'None'}</div>
+          </div>
+        `
+      } else if (currentType === 'parent') {
+        details.innerHTML = `
+          <div class="text-sm md:text-base">
+            <div class="font-semibold text-red-800">Parent Name</div>
+            <div class="mb-2">${currentPayload.parent_name}</div>
+            <div class="font-semibold text-red-800">Parent Age</div>
+            <div class="mb-2">${currentPayload.parent_age}</div>
+            <div class="font-semibold text-red-800">Parent Phone</div>
+            <div class="mb-2">${currentPayload.parent_phone}</div>
+            <div class="font-semibold text-red-800">Student Name</div>
+            <div class="mb-2">${currentPayload.student_name}</div>
+            <div class="font-semibold text-red-800">Student Class</div>
+            <div class="mb-2">${currentPayload.student_class}</div>
+            <div class="font-semibold text-red-800 mt-2">Competitions Enrolled</div>
+            <div>${comps.length ? comps.join(', ') : 'None'}</div>
+          </div>
+        `
+      } else {
+        details.innerHTML = `
+          <div class="text-sm md:text-base">
+            <div class="font-semibold text-red-800">Name</div>
+            <div class="mb-2">${currentPayload.name}</div>
+            <div class="font-semibold text-red-800">Phone</div>
+            <div class="mb-2">${currentPayload.phone}</div>
+            <div class="font-semibold text-red-800">Age</div>
+            <div class="mb-2">${currentPayload.age}</div>
+            <div class="font-semibold text-red-800 mt-2">Competitions Enrolled</div>
+            <div>${comps.length ? comps.join(', ') : 'None'}</div>
+          </div>
+        `
+      }
+      clearNode(qrCanvas)
+      const compText = comps.length ? `|COMP:${comps.join(';')}` : ''
+      let qrText = ''
+      if (currentType === 'student') {
+        qrText = `STUDENT|ENR:${currentPayload.enrollment_no}|NAME:${currentPayload.name}${compText}`
+      } else if (currentType === 'parent') {
+        qrText = `PARENT|NAME:${currentPayload.parent_name}|PHONE:${currentPayload.parent_phone}|STUDENT:${currentPayload.student_name}|CLASS:${currentPayload.student_class}${compText}`
+      } else if (currentType === 'employee') {
+        qrText = `EMPLOYEE|NO:${currentPayload.employee_no}${compText}`
+      } else if (currentType === 'alumni') {
+        qrText = `ALUMNI|NAME:${currentPayload.name}|CLASS:${currentPayload.last_class}|ORG:${currentPayload.org_name}|ADDR:${currentPayload.org_addr}${compText}`
+      } else {
+        qrText = `OTHERS|NAME:${currentPayload.name}|AGE:${currentPayload.age}|PHONE:${currentPayload.phone}${compText}`
+      }
+      new QRCode(qrCanvas, { text: qrText, width: 180, height: 180, colorDark: '#1e3a8a', colorLight: '#fffdf5' })
+      qrCard.classList.remove('hidden')
+      if (downloadBtn) downloadBtn.classList.remove('hidden')
+    }
+    function downloadTicket() {
+      const qrCard = document.getElementById('qrCard')
+      if (!qrCard || qrCard.classList.contains('hidden')) return
+      function doCapture() {
+        html2canvas(qrCard, { scale: 2, backgroundColor: '#fffdf5', useCORS: true }).then((canvas) => {
+          const dataUrl = canvas.toDataURL('image/png')
+          const a = document.createElement('a')
+          let filename = 'ticket.png'
+          if (currentType === 'student') filename = `ticket_${(currentPayload && currentPayload.enrollment_no) || 'student'}.png`
+          else if (currentType === 'parent') filename = `ticket_parent_${(currentPayload && currentPayload.parent_phone) || 'parent'}.png`
+          else if (currentType === 'employee') filename = `ticket_employee_${(currentPayload && currentPayload.employee_no) || 'no'}.png`
+          else if (currentType === 'alumni') filename = `ticket_alumni_${(currentPayload && currentPayload.name) || 'alumni'}.png`
+          else filename = `ticket_${(currentPayload && currentPayload.phone) || 'others'}.png`
+          a.href = dataUrl
+          a.download = filename
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+        })
+      }
+      if (!window.html2canvas) {
+        const s = document.createElement('script')
+        s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'
+        s.onload = doCapture
+        document.head.appendChild(s)
+      } else {
+        doCapture()
+      }
+    }
+    if (downloadBtn) downloadBtn.addEventListener('click', downloadTicket)
+    if (qrBtn) qrBtn.addEventListener('click', renderQrTicket)
+  </script>
+  <script>
+    window.SHEET_ID = '1iG4qM88_XSW_j0Za1IN2VQNvrEqj-xrSQ3Bnlyg742U'
+    window.SHEET_GID = '0'
+    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL'
+    const form = document.forms['submit-form']
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault()
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+          .then(response => alert('Submitted Successfully'))
+          .catch(error => console.error('Error!', error.message))
+      })
+    }
+  </script>
+  <div class="fixed bottom-4 right-4 flex flex-col gap-2" style="z-index:1000">
+    <button id="adminBtn" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Admin</button>
+    <div id="adminPanel" class="hidden rounded-md border border-blue-200 bg-white shadow p-3 w-72">
+      <div class="flex justify-between items-center mb-2">
+        <div class="text-sm text-blue-900 font-semibold">Admin Dashboard</div>
+        <div class="text-xs text-gray-500" id="lastSyncTime"></div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="bg-blue-50 p-2 rounded border border-blue-100 text-center">
+          <div class="text-xs text-blue-800 uppercase font-bold">Total</div>
+          <div id="totalRegCount" class="text-2xl font-bold text-blue-900">0</div>
+        </div>
+        <div class="bg-green-50 p-2 rounded border border-green-100 text-center cursor-pointer" id="viewAllBtn">
+          <div class="text-xs text-green-800 uppercase font-bold">Database</div>
+          <div class="text-xs font-semibold text-green-700 mt-1">View All &rarr;</div>
+        </div>
+      </div>
+      
+      <div class="mb-2 bg-green-50 p-2 rounded border border-green-200 text-[10px] text-green-800 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span class="font-bold">Live Database: Google Sheets + SQL</span>
+      </div>
+
+      <div class="mb-2 flex flex-col gap-2">
+        <button id="copyLinkBtn" class="w-full rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 text-sm hover:bg-blue-50">Copy Sheet Link</button>
+        <a id="sheetLink" target="_blank" rel="noopener" class="block text-center w-full rounded-md bg-blue-100 px-3 py-1.5 text-blue-800 text-sm font-semibold hover:bg-blue-200">Open Google Sheet</a>
+      </div>
+      
+      <div class="mb-2 border-t border-blue-100 pt-2">
+        <div class="text-xs font-bold text-gray-500 mb-1 uppercase">Quick Actions</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="exportBtn" class="rounded-md bg-green-600 px-2 py-1.5 text-white text-xs font-semibold hover:bg-green-700">Excel (.xlsx)</button>
+          <button id="downloadCsvBtn" class="rounded-md bg-yellow-500 px-2 py-1.5 text-blue-900 text-xs font-bold hover:bg-yellow-400">CSV File</button>
+        </div>
+      </div>
+
+      <div class="mb-2 border-t border-blue-100 pt-2">
+        <div class="text-sm font-semibold text-blue-900 mb-1">Verify Ticket</div>
+        <div class="flex gap-2 mb-2">
+          <input id="verifyInput" placeholder="ID / Phone" class="w-full rounded-md border border-blue-300 px-2 py-1 text-sm" />
+          <button id="verifyBtn" class="rounded-md bg-blue-600 px-3 py-1 text-white text-sm font-semibold hover:bg-blue-700">Go</button>
+        </div>
+        <div id="verifyResult" class="hidden p-2 rounded-md text-sm"></div>
+      </div>
+
+      <div id="adminRows" class="hidden"></div>
+      <div class="text-[10px] text-center text-gray-400 mt-2">Powered by Google Sheets</div>
+    </div>
+
+    <!-- Full Database Modal -->
+    <div id="fullDbModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4" style="z-index: 2000;">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">Registration Database</h2>
+            <p class="text-sm text-gray-500">Total Records: <span id="dbTotal" class="font-mono font-bold text-blue-600">0</span></p>
+          </div>
+          <button id="closeDbBtn" class="text-gray-500 hover:text-red-600 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="overflow-auto flex-1 p-0">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-100 sticky top-0 shadow-sm">
+              <tr id="dbHeaders"></tr>
+            </thead>
+            <tbody id="dbBody" class="divide-y divide-gray-200 bg-white"></tbody>
+          </table>
+        </div>
+        <div class="p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl text-right">
+          <button id="modalExportBtn" class="rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm">Download All Data</button>
+        </div>
+      </div>
+    </div>
+    <div id="adminPinModal" class="hidden fixed inset-0 bg-black/40">
+      <div class="absolute right-4 bottom-20 w-72 rounded-md bg-white shadow border border-blue-200 p-3">
+        <div class="text-sm font-semibold text-blue-900 mb-2">Enter Admin PIN</div>
+        <input id="adminPinInput" type="password" class="w-full rounded-md border border-blue-300 px-2 py-1" placeholder="PIN" />
+        <div class="mt-2 flex justify-end gap-2">
+          <button id="adminPinCancel" class="rounded-md border border-blue-200 px-3 py-1 text-blue-700">Cancel</button>
+          <button id="adminPinSubmit" class="rounded-md bg-blue-600 px-3 py-1 text-white">Enter</button>
+        </div>
+        <div id="adminPinMsg" class="text-xs text-red-700 mt-2"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      window.ADMIN_PIN = '3874'
+      const btn = document.getElementById('adminBtn')
+      const panel = document.getElementById('adminPanel')
+      const totalRegCount = document.getElementById('totalRegCount')
+      const lastSyncTime = document.getElementById('lastSyncTime')
+      const exportBtn = document.getElementById('exportBtn')
+      const downloadCsvBtn = document.getElementById('downloadCsvBtn')
+      const viewAllBtn = document.getElementById('viewAllBtn')
+      
+      const pinModal = document.getElementById('adminPinModal')
+      const pinInput = document.getElementById('adminPinInput')
+      const pinSubmit = document.getElementById('adminPinSubmit')
+      const pinCancel = document.getElementById('adminPinCancel')
+      const pinMsg = document.getElementById('adminPinMsg')
+      
+      const fullDbModal = document.getElementById('fullDbModal')
+      const closeDbBtn = document.getElementById('closeDbBtn')
+      const dbHeaders = document.getElementById('dbHeaders')
+      const dbBody = document.getElementById('dbBody')
+      const dbTotal = document.getElementById('dbTotal')
+      const modalExportBtn = document.getElementById('modalExportBtn')
+
+      const sheetLink = document.getElementById('sheetLink')
+      const copyLinkBtn = document.getElementById('copyLinkBtn')
+      const verifyInput = document.getElementById('verifyInput')
+      const verifyBtn = document.getElementById('verifyBtn')
+      const verifyResult = document.getElementById('verifyResult')
+
+      let sidLink = window.SHEET_ID || ''
+      if (sidLink.includes('/d/')) { try { sidLink = sidLink.split('/d/')[1].split('/')[0] } catch (_) {} }
+      const sheetUrl = sidLink ? `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sidLink)}/edit` : ''
+      if (sheetLink && sheetUrl) sheetLink.href = sheetUrl
+      if (copyLinkBtn) copyLinkBtn.addEventListener('click', async () => {
+        if (!sheetUrl) { alert('No sheet configured'); return }
+        try { await navigator.clipboard.writeText(sheetUrl); alert('Link copied') }
+        catch (_) { alert(sheetUrl) }
+      })
+
+      async function verifyTicket() {
+        const query = (verifyInput.value || '').trim().toLowerCase()
+        if (!query) return
+        verifyResult.textContent = 'Checking...'
+        verifyResult.className = 'p-2 rounded-md text-sm bg-gray-100 text-gray-700 mb-2'
+        verifyResult.classList.remove('hidden')
+        
+        const rows = await fetchRegistrations()
+        const found = rows.find(r => {
+          const reg = String(r['reg_no'] || r['Reg No'] || r['Registration No'] || '').toLowerCase()
+          const phone = String(r['phone'] || r['Parent Phone'] || r['parent_phone'] || '').toLowerCase()
+          const enroll = String(r['enrollment_no'] || r['Enrollment No'] || '').toLowerCase()
+          return reg.includes(query) || phone.includes(query) || enroll.includes(query)
+        })
+
+        if (found) {
+          const name = found['name'] || found['Name'] || found['Student Name'] || found['Parent Name'] || found['student_name'] || 'Unknown'
+          const cat = found['category'] || found['Category'] || 'Unknown'
+          const comps = found['competitions'] || found['Competitions'] || ''
+          verifyResult.className = 'p-2 rounded-md text-sm bg-green-50 border border-green-200 text-green-800 mb-2'
+          verifyResult.innerHTML = `
+            <div class="font-bold">SUCCESS: Verified</div>
+            <div>Name: ${name}</div>
+            <div>Category: ${cat}</div>
+            ${comps ? `<div>Comps: ${comps}</div>` : ''}
+            <div class="mt-1 text-xs">Welcome to the Carnival!</div>
+          `
+        } else {
+          verifyResult.className = 'p-2 rounded-md text-sm bg-red-50 border border-red-200 text-red-800 mb-2'
+          verifyResult.innerHTML = `
+            <div class="font-bold">DENIED: Not Found</div>
+            <div>No record matches "${verifyInput.value}"</div>
+            <div class="mt-1 text-xs">Please register first.</div>
+          `
+        }
+      }
+      if (verifyBtn) verifyBtn.addEventListener('click', verifyTicket)
+
+      function togglePanel() { pinMsg.textContent=''; pinInput.value=''; pinModal.classList.remove('hidden') }
+      function closePin() { pinModal.classList.add('hidden') }
+      function tryPin(){ const val = (pinInput.value || '').trim(); if (val === (window.ADMIN_PIN || '3874')) { closePin(); panel.classList.remove('hidden'); refreshStatus() } else { pinMsg.textContent = 'Incorrect PIN' } }
+      
+      async function fetchRegistrations(){
+        try {
+          const sid = window.SHEET_ID
+          const gid = window.SHEET_GID || '0'
+          const csvUrl = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${encodeURIComponent(gid)}`
+          const resCsv = await fetch(csvUrl, { cache: 'no-cache' })
+          if (!resCsv.ok) throw new Error('Network error: ' + resCsv.status)
+          const text = await resCsv.text()
+          if (text.trim().startsWith('<!DOCTYPE') || text.includes('<html')) {
+            throw new Error('Sheet not public (Publish to Web)')
+          }
+          const lines = text.split(/\r?\n/).filter(Boolean)
+          if (!lines.length) return []
+          const headers = lines[0].split(',').map(h => h.trim())
+          const rows = []
+          for (let i = 1; i < lines.length; i++) {
+            const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
+            const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
+            const obj = {}
+            headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
+            rows.push(obj)
+          }
+          return rows
+        } catch (e) { 
+          console.error(e); 
+          if(totalRegCount) totalRegCount.textContent = 'Err'
+          if(lastSyncTime) lastSyncTime.textContent = e.message
+          return [] 
+        }
+      }
+
+      async function refreshStatus(){
+        const remote = await fetchRegistrations()
+        const total = remote.length
+        if(totalRegCount) totalRegCount.textContent = total
+        if(lastSyncTime) lastSyncTime.textContent = 'Synced: ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        if(exportBtn) exportBtn.textContent = `Excel (${total})`
+      }
+
+      async function exportExcel(){
+        try {
+          const remote = await fetchRegistrations()
+          if (!remote.length) { alert('No data to export'); return }
+          const ws = XLSX.utils.json_to_sheet(remote)
+          const wb = XLSX.utils.book_new()
+          XLSX.utils.book_append_sheet(wb, ws, 'Registrations')
+          XLSX.writeFile(wb, 'registrations.xlsx')
+        } catch (_) { alert('Export failed') }
+      }
+
+      async function downloadCSV() {
+        const data = await fetchRegistrations()
+        if (!data.length) { alert('No data found'); return }
+        const headers = Object.keys(data[0])
+        const csvContent = [
+          headers.join(','),
+          ...data.map(row => headers.map(fieldName => JSON.stringify(row[fieldName] || '')).join(','))
+        ].join('\n')
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `registrations_${new Date().toISOString().split('T')[0]}.csv`
+        a.click()
+      }
+
+      async function showFullDb() {
+        const data = await fetchRegistrations()
+        if(dbTotal) dbTotal.textContent = data.length
+        if(dbHeaders) dbHeaders.innerHTML = ''
+        if(dbBody) dbBody.innerHTML = ''
+        if (!data.length) { alert('No data found'); return }
+        
+        const headers = Object.keys(data[0])
+        headers.forEach(h => {
+          const th = document.createElement('th')
+          th.className = 'px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
+          th.textContent = h
+          if(dbHeaders) dbHeaders.appendChild(th)
+        })
+
+        data.forEach(row => {
+          const tr = document.createElement('tr')
+          headers.forEach(h => {
+            const td = document.createElement('td')
+            td.className = 'px-4 py-2 whitespace-nowrap text-gray-700'
+            td.textContent = row[h] || ''
+            tr.appendChild(td)
+          })
+          if(dbBody) dbBody.appendChild(tr)
+        })
+        if(fullDbModal) fullDbModal.classList.remove('hidden')
+      }
+
+      if (btn) btn.addEventListener('click', togglePanel)
+      if (pinSubmit) pinSubmit.addEventListener('click', tryPin)
+      if (pinCancel) pinCancel.addEventListener('click', closePin)
+      if (exportBtn) exportBtn.addEventListener('click', exportExcel)
+      if (downloadCsvBtn) downloadCsvBtn.addEventListener('click', downloadCSV)
+      if (viewAllBtn) viewAllBtn.addEventListener('click', showFullDb)
+      if (closeDbBtn) closeDbBtn.addEventListener('click', () => fullDbModal.classList.add('hidden'))
+      if (modalExportBtn) modalExportBtn.addEventListener('click', downloadCSV)
+    })()
+  </script>
+  </body>
+  </html>
