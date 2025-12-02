@@ -3,11 +3,13 @@ import json
 import psycopg2
 from flask import Flask, request, jsonify, send_from_directory, redirect
 
-DB_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_zlxSKm3OBQ0r@ep-morning-shape-adilpx1p-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+DB_URL = os.environ.get('DATABASE_URL')
 
 app = Flask(__name__, static_folder='')
 
 def db_conn():
+    if not DB_URL:
+        raise RuntimeError('DATABASE_URL is not configured')
     return psycopg2.connect(DB_URL)
 
 def ensure_roster_table(cur):
