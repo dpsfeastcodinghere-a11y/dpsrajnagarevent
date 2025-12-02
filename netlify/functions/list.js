@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs')
+const { Client } = require('pg');
 
 exports.handler = async (event) => {
   const headers = {
@@ -6,28 +6,40 @@ exports.handler = async (event) => {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'OPTIONS,GET,DELETE',
     'Content-Type': 'application/json'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers };
   }
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers }
+
   try {
-    const store = getStore('registrations')
-    if (event.httpMethod === 'DELETE') {
-      let idxRaw = await store.get('index')
-      let idx = []
-      if (idxRaw) { try { idx = JSON.parse(idxRaw) } catch (_) { idx = [] } }
-      for (const item of idx) { try { await store.delete(item.key) } catch (_) {} }
-      await store.delete('index')
-      return { statusCode: 200, headers, body: JSON.stringify({ success: true }) }
+    if (process.env.DATABASE_URL) {
+      const client = new Client({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      });
+      await client.connect();
+
+      const result = await client.query('SELECT data FROM registrations ORDER BY id DESC');
+      
+      const rows = result.rows.map(row => row.data);
+      
+      await client.end();
+      return { statusCode: 200, headers, body: JSON.stringify({ success: true, rows }) };
     }
-    let idxRaw = await store.get('index')
-    let idx = []
-    if (idxRaw) { try { idx = JSON.parse(idxRaw) } catch (_) { idx = [] } }
-    const rows = []
-    for (const item of idx) {
-      const rRaw = await store.get(item.key)
-      if (rRaw) { try { rows.push(JSON.parse(rRaw)) } catch (_) {} }
-    }
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, rows }) }
-  } catch (e) {
-    return { statusCode: 500, headers, body: JSON.stringify({ success: false, message: 'Server error' }) }
+    
+    return { 
+      statusCode: 200, 
+      headers, 
+      body: JSON.stringify({ success: false, message: 'No database configured', rows: [] }) 
+    };
+
+  } catch (error) {
+    console.error('Database Error:', error);
+    return { 
+      statusCode: 500, 
+      headers, 
+      body: JSON.stringify({ success: false, error: error.message }) 
+    };
   }
-}
+};

@@ -1,5 +1,6 @@
 [build]
   functions = "netlify/functions"
+  publish = "main"
 
 [[headers]]
   for = "/.netlify/functions/*"
@@ -7,3 +8,13 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Headers = "Content-Type"
     Access-Control-Allow-Methods = "GET,POST,DELETE,OPTIONS"
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/main/index.html"
+  status = 200

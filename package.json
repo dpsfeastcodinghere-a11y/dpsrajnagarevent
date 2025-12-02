@@ -6,7 +6,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@netlify/blobs": "^6.3.0",
-    "pg": "^8.11.3",
-    "mysql2": "^3.9.1"
+    "pg": "^8.11.3"
   }
 }

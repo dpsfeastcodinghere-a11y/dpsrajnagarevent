@@ -1,5 +1,4 @@
 const { Client } = require('pg');
-const mysql = require('mysql2/promise');
 
 exports.handler = async (event) => {
   const headers = {
@@ -45,29 +44,12 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ success: true, source: 'postgres' }) };
     }
 
-    // 2. Try MySQL if configured
-    if (process.env.MYSQL_URL) {
-      const connection = await mysql.createConnection(process.env.MYSQL_URL);
-      const [rows] = await connection.execute(
-        'INSERT INTO registrations (enrollment_no, name, category, phone, data, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-        [
-          data.enrollment_no || '',
-          data.name || data.student_name || data.parent_name || '',
-          data.category || 'Student',
-          data.phone || data.parent_phone || '',
-          JSON.stringify(data)
-        ]
-      );
-      await connection.end();
-      return { statusCode: 200, headers, body: JSON.stringify({ success: true, source: 'mysql' }) };
-    }
-
     return { 
       statusCode: 200, 
       headers, 
       body: JSON.stringify({ 
         success: false, 
-        message: 'No database configured. Please set DATABASE_URL (Postgres) or MYSQL_URL (MySQL) in Netlify.' 
+        message: 'No database configured. Please set DATABASE_URL (Postgres) in Netlify.' 
       }) 
     };
 

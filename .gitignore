@@ -1,3 +1,6 @@
 node_modules
 .DS_Store
 .env
+server.py
+test_server.py
+check_db.py

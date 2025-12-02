@@ -334,28 +334,7 @@
       return null
     }
 
-    async function fetchSheetRows() {
-      try {
-        const sid = window.SHEET_ID
-        const gid = window.SHEET_GID || '0'
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${encodeURIComponent(gid)}`
-        const res = await fetch(csvUrl, { cache: 'no-cache' })
-        if (!res.ok) return []
-        const text = await res.text()
-        const lines = text.split(/\r?\n/).filter(Boolean)
-        if (!lines.length) return []
-        const headers = lines[0].split(',').map(h => h.trim())
-        const rows = []
-        for (let i = 1; i < lines.length; i++) {
-          const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
-          const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
-          const obj = {}
-          headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
-          rows.push(obj)
-        }
-        return rows
-      } catch (_) { return [] }
-    }
+    
 
     function normVal(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '') }
     function rowHas(rows, keyList, value) {
@@ -372,44 +351,7 @@
       }
       return false
     }
-    async function hasDuplicate(payload) {
-      const rows = await fetchSheetRows()
-      if (!rows.length) return false
-      if (payload.type === 'student' && payload.enrollment_no) {
-        return rowHas(rows, ['Enrollment', 'Enrollment No', 'Admission No', 'Enrollment Number'], payload.enrollment_no)
-      }
-      if (payload.type === 'parent') {
-        if (payload.parent_phone && rowHas(rows, ['Parent Phone', 'Phone', 'Contact'], payload.parent_phone)) return true
-        if (payload.student_name && payload.student_class) {
-          const nm = normVal(payload.student_name)
-          const cls = normVal(payload.student_class)
-          for (const r of rows) {
-            const rn = normVal(r['Student Name'] || r['Name'] || '')
-            const rc = normVal(r['Student Class'] || r['Class'] || '')
-            if (rn === nm && rc === cls) return true
-          }
-        }
-        return false
-      }
-      if (payload.type === 'employee' && payload.employee_no) {
-        return rowHas(rows, ['Employee No', 'Emp No', 'Employee'], payload.employee_no)
-      }
-      if (payload.type === 'alumni' && payload.name && payload.last_class) {
-        const nm = normVal(payload.name)
-        const lc = normVal(payload.last_class)
-        for (const r of rows) {
-          const rn = normVal(r['Name'] || '')
-          const rl = normVal(r['Last Class'] || r['Last Class at DPS RN'] || '')
-          if (rn === nm && rl === lc) return true
-        }
-        return false
-      }
-      if (payload.type === 'others' && payload.phone) {
-        if (rowHas(rows, ['Phone', 'Contact'], payload.phone)) return true
-        return false
-      }
-      return false
-    }
+    
     function updateTicket(data) {
       const body = document.getElementById('detailsBody')
       body.innerHTML = `
@@ -723,25 +665,8 @@
       // Only send to Google Sheets via Apps Script
       const reg_no = `REG-${Date.now().toString(36).toUpperCase()}`
       payload.reg_no = reg_no
-      if (await hasDuplicate(payload)) {
-        resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered</div></div>`
-        return
-      }
-      const scriptURL = window.SHEET_SCRIPT_URL || 'YOUR_GOOGLE_APPS_SCRIPT_URL'
-      async function saveToGoogle() {
-        try {
-          const fd = new FormData()
-          for (const k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) fd.append(k, Array.isArray(payload[k]) ? payload[k].join(', ') : String(payload[k])) }
-          let sid = window.SHEET_ID
-          if (sid && sid.includes('/d/')) { try { sid = sid.split('/d/')[1].split('/')[0] } catch (_) {} }
-          if (sid) fd.append('sheet_id', sid)
-          fd.append('sheet_tab', 'Sheet1')
-          fd.append('sheet_gid', '0')
-          if (!scriptURL) return false
-          await fetch(scriptURL, { method: 'POST', body: fd, mode: 'no-cors' })
-          return true
-        } catch (_) { return false }
-      }
+      
+      
       async function saveToNetlify() {
         try {
           const res = await fetch('/.netlify/functions/save_to_db', {
@@ -749,14 +674,19 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           })
-          if (!res.ok) return false
+          const duplicate = res.status === 409
+          if (!res.ok) return { success: false, duplicate }
           const json = await res.json()
-          return json.success
-        } catch (_) { return false }
+          return { success: !!json.success, duplicate }
+        } catch (_) { return { success: false, duplicate: false } }
       }
 
-      const [googleOk, netlifyOk] = await Promise.all([saveToGoogle(), saveToNetlify()])
-      const ok = googleOk || netlifyOk
+      const netlifyRes = await saveToNetlify()
+      if (netlifyRes && netlifyRes.duplicate) {
+        resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered</div></div>`
+        return
+      }
+      const ok = netlifyRes && netlifyRes.success
       if (ok) {
         try { const list = JSON.parse(localStorage.getItem('registrations') || '[]'); list.push(payload); localStorage.setItem('registrations', JSON.stringify(list)) } catch (_) {}
       }
@@ -879,20 +809,7 @@
     if (downloadBtn) downloadBtn.addEventListener('click', downloadTicket)
     if (qrBtn) qrBtn.addEventListener('click', renderQrTicket)
   </script>
-  <script>
-    window.SHEET_ID = '1iG4qM88_XSW_j0Za1IN2VQNvrEqj-xrSQ3Bnlyg742U'
-    window.SHEET_GID = '0'
-    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL'
-    const form = document.forms['submit-form']
-    if (form) {
-      form.addEventListener('submit', e => {
-        e.preventDefault()
-        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-          .then(response => alert('Submitted Successfully'))
-          .catch(error => console.error('Error!', error.message))
-      })
-    }
-  </script>
+  
   <div class="fixed bottom-4 right-4 flex flex-col gap-2" style="z-index:1000">
     <button id="adminBtn" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Admin</button>
     <div id="adminPanel" class="hidden rounded-md border border-blue-200 bg-white shadow p-3 w-72">
@@ -914,13 +831,10 @@
       
       <div class="mb-2 bg-green-50 p-2 rounded border border-green-200 text-[10px] text-green-800 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span class="font-bold">Live Database: Google Sheets + SQL</span>
+        <span class="font-bold">Live Database: PostgreSQL</span>
       </div>
 
-      <div class="mb-2 flex flex-col gap-2">
-        <button id="copyLinkBtn" class="w-full rounded-md border border-blue-200 px-3 py-1.5 text-blue-700 text-sm hover:bg-blue-50">Copy Sheet Link</button>
-        <a id="sheetLink" target="_blank" rel="noopener" class="block text-center w-full rounded-md bg-blue-100 px-3 py-1.5 text-blue-800 text-sm font-semibold hover:bg-blue-200">Open Google Sheet</a>
-      </div>
+      
       
       <div class="mb-2 border-t border-blue-100 pt-2">
         <div class="text-xs font-bold text-gray-500 mb-1 uppercase">Quick Actions</div>
@@ -940,7 +854,7 @@
       </div>
 
       <div id="adminRows" class="hidden"></div>
-      <div class="text-[10px] text-center text-gray-400 mt-2">Powered by Google Sheets</div>
+      <div class="text-[10px] text-center text-gray-400 mt-2">Powered by PostgreSQL</div>
     </div>
 
     <!-- Full Database Modal -->
@@ -966,17 +880,18 @@
         </div>
       </div>
     </div>
-    <div id="adminPinModal" class="hidden fixed inset-0 bg-black/40">
-      <div class="absolute right-4 bottom-20 w-72 rounded-md bg-white shadow border border-blue-200 p-3">
-        <div class="text-sm font-semibold text-blue-900 mb-2">Enter Admin PIN</div>
-        <input id="adminPinInput" type="password" class="w-full rounded-md border border-blue-300 px-2 py-1" placeholder="PIN" />
-        <div class="mt-2 flex justify-end gap-2">
-          <button id="adminPinCancel" class="rounded-md border border-blue-200 px-3 py-1 text-blue-700">Cancel</button>
-          <button id="adminPinSubmit" class="rounded-md bg-blue-600 px-3 py-1 text-white">Enter</button>
+      <div id="adminPinModal" class="hidden fixed inset-0 bg-black/40">
+        <div class="absolute right-4 bottom-20 w-72 rounded-md bg-white shadow border border-blue-200 p-3">
+          <div class="text-sm font-semibold text-blue-900 mb-2">Enter Admin PIN</div>
+          <input id="adminPinInput" type="password" class="w-full rounded-md border border-blue-300 px-2 py-1" placeholder="PIN" />
+          <div class="mt-2 flex justify-end gap-2">
+            <button id="adminPinCancel" class="rounded-md border border-blue-200 px-3 py-1 text-blue-700">Cancel</button>
+            <button id="adminPinSubmit" class="rounded-md bg-blue-600 px-3 py-1 text-white">Enter</button>
+          </div>
+          <div id="adminPinMsg" class="text-xs text-red-700 mt-2"></div>
         </div>
-        <div id="adminPinMsg" class="text-xs text-red-700 mt-2"></div>
       </div>
-    </div>
+    
   </div>
   <script>
     (function(){
@@ -1002,21 +917,14 @@
       const dbTotal = document.getElementById('dbTotal')
       const modalExportBtn = document.getElementById('modalExportBtn')
 
-      const sheetLink = document.getElementById('sheetLink')
-      const copyLinkBtn = document.getElementById('copyLinkBtn')
+      
       const verifyInput = document.getElementById('verifyInput')
       const verifyBtn = document.getElementById('verifyBtn')
       const verifyResult = document.getElementById('verifyResult')
 
-      let sidLink = window.SHEET_ID || ''
-      if (sidLink.includes('/d/')) { try { sidLink = sidLink.split('/d/')[1].split('/')[0] } catch (_) {} }
-      const sheetUrl = sidLink ? `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sidLink)}/edit` : ''
-      if (sheetLink && sheetUrl) sheetLink.href = sheetUrl
-      if (copyLinkBtn) copyLinkBtn.addEventListener('click', async () => {
-        if (!sheetUrl) { alert('No sheet configured'); return }
-        try { await navigator.clipboard.writeText(sheetUrl); alert('Link copied') }
-        catch (_) { alert(sheetUrl) }
-      })
+      
+
+      
 
       async function verifyTicket() {
         const query = (verifyInput.value || '').trim().toLowerCase()
@@ -1062,27 +970,16 @@
       
       async function fetchRegistrations(){
         try {
-          const sid = window.SHEET_ID
-          const gid = window.SHEET_GID || '0'
-          const csvUrl = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${encodeURIComponent(gid)}`
-          const resCsv = await fetch(csvUrl, { cache: 'no-cache' })
-          if (!resCsv.ok) throw new Error('Network error: ' + resCsv.status)
-          const text = await resCsv.text()
-          if (text.trim().startsWith('<!DOCTYPE') || text.includes('<html')) {
-            throw new Error('Sheet not public (Publish to Web)')
-          }
-          const lines = text.split(/\r?\n/).filter(Boolean)
-          if (!lines.length) return []
-          const headers = lines[0].split(',').map(h => h.trim())
-          const rows = []
-          for (let i = 1; i < lines.length; i++) {
-            const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
-            const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
-            const obj = {}
-            headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
-            rows.push(obj)
-          }
-          return rows
+          // 1. Try fetching from SQL Database (via Netlify Function)
+          try {
+            const resDb = await fetch('/.netlify/functions/list')
+            if (resDb.ok) {
+              const json = await resDb.json()
+              if (json.success && Array.isArray(json.rows) && json.rows.length > 0) {
+                return json.rows
+              }
+            }
+          } catch (err) { console.log('SQL fetch failed', err); return [] }
         } catch (e) { 
           console.error(e); 
           if(totalRegCount) totalRegCount.textContent = 'Err'
