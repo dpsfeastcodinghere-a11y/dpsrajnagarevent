@@ -955,7 +955,7 @@
   </div>
   <script>
     (function(){
-      window.ADMIN_PIN = '3874'
+      try { window.ADMIN_PIN = localStorage.getItem('admin_pin') || '9834' } catch(_) { window.ADMIN_PIN = '9834' }
       const btn = document.getElementById('adminBtn')
       const panel = document.getElementById('adminPanel')
       const totalRegCount = document.getElementById('totalRegCount')
@@ -1026,7 +1026,29 @@
 
       function togglePanel() { pinMsg.textContent=''; pinInput.value=''; pinModal.classList.remove('hidden') }
       function closePin() { pinModal.classList.add('hidden') }
-      function tryPin(){ const val = (pinInput.value || '').trim(); if (val === (window.ADMIN_PIN || '3874')) { closePin(); panel.classList.remove('hidden'); refreshStatus() } else { pinMsg.textContent = 'Incorrect PIN' } }
+      function normalizeDigits(s){ return String(s).replace(/[\u0660-\u0669\u06F0-\u06F9\u0966-\u096F\u09E6-\u09EF\u0A66-\u0A6F\u0AE6-\u0AEF\u0BE6-\u0BEF\u0C66-\u0C6F\u0CE6-\u0CEF\u0D66-\u0D6F]/g, ch => {
+        const code = ch.codePointAt(0)
+        const maps = {
+          0x0660:0,0x0661:1,0x0662:2,0x0663:3,0x0664:4,0x0665:5,0x0666:6,0x0667:7,0x0668:8,0x0669:9,
+          0x06F0:0,0x06F1:1,0x06F2:2,0x06F3:3,0x06F4:4,0x06F5:5,0x06F6:6,0x06F7:7,0x06F8:8,0x06F9:9,
+          0x0966:0,0x0967:1,0x0968:2,0x0969:3,0x096A:4,0x096B:5,0x096C:6,0x096D:7,0x096E:8,0x096F:9,
+          0x09E6:0,0x09E7:1,0x09E8:2,0x09E9:3,0x09EA:4,0x09EB:5,0x09EC:6,0x09ED:7,0x09EE:8,0x09EF:9,
+          0x0A66:0,0x0A67:1,0x0A68:2,0x0A69:3,0x0A6A:4,0x0A6B:5,0x0A6C:6,0x0A6D:7,0x0A6E:8,0x0A6F:9,
+          0x0AE6:0,0x0AE7:1,0x0AE8:2,0x0AE9:3,0x0AEA:4,0x0AEB:5,0x0AEC:6,0x0AED:7,0x0AEE:8,0x0AEF:9,
+          0x0BE6:0,0x0BE7:1,0x0BE8:2,0x0BE9:3,0x0BEA:4,0x0BEB:5,0x0BEC:6,0x0BED:7,0x0BEE:8,0x0BEF:9,
+          0x0C66:0,0x0C67:1,0x0C68:2,0x0C69:3,0x0C6A:4,0x0C6B:5,0x0C6C:6,0x0C6D:7,0x0C6E:8,0x0C6F:9,
+          0x0CE6:0,0x0CE7:1,0x0CE8:2,0x0CE9:3,0x0CEA:4,0x0CEB:5,0x0CEC:6,0x0CED:7,0x0CEE:8,0x0CEF:9,
+          0x0D66:0,0x0D67:1,0x0D68:2,0x0D69:3,0x0D6A:4,0x0D6B:5,0x0D6C:6,0x0D6D:7,0x0D6E:8,0x0D6F:9
+        }
+        return String(maps[code] ?? ch)
+      }) }
+      function tryPin(){
+        const valRaw = (pinInput.value || '').trim()
+        const val = normalizeDigits(valRaw)
+        const target = normalizeDigits(window.ADMIN_PIN || '9834')
+        if (val && val === target) { closePin(); panel.classList.remove('hidden'); try { sessionStorage.setItem('admin_unlocked','true') } catch(_) {}; refreshStatus() }
+        else { pinMsg.textContent = 'Incorrect PIN' }
+      }
       
       async function fetchRegistrations(){
         try {
@@ -1108,6 +1130,7 @@
 
       if (btn) btn.addEventListener('click', togglePanel)
       if (pinSubmit) pinSubmit.addEventListener('click', tryPin)
+      if (pinInput) pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryPin() })
       if (pinCancel) pinCancel.addEventListener('click', closePin)
       if (exportBtn) exportBtn.addEventListener('click', exportExcel)
       if (downloadCsvBtn) downloadCsvBtn.addEventListener('click', downloadCSV)

@@ -19,6 +19,15 @@
   <main class="max-w-6xl mx-auto px-6">
     <div id="status" class="mb-3 text-sm"></div>
     <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Admin PIN</div>
+      <div class="flex items-center gap-3">
+        <input id="pinInput" type="password" class="rounded-md border border-blue-300 px-2 py-1 w-40" placeholder="Enter PIN" />
+        <button id="pinSetBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Set PIN</button>
+        <button id="pinUnlockBtn" class="rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700 hidden">Unlock</button>
+        <span id="pinMsg" class="ml-3 text-sm"></span>
+      </div>
+    </div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
       <div class="text-blue-900 font-semibold mb-2">Add Student to Roster (fallback when Excel missing)</div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <input id="rosterEnrollment" type="text" placeholder="Enrollment No" class="rounded-md border border-blue-300 px-2 py-1" />
@@ -75,10 +84,22 @@
   </main>
 
   <script>
-    
+    const pinInput = document.getElementById('pinInput')
+    const pinSetBtn = document.getElementById('pinSetBtn')
+    const pinUnlockBtn = document.getElementById('pinUnlockBtn')
+    const pinMsg = document.getElementById('pinMsg')
+    let isUnlocked = false
+    function showLocked(){ const status=document.getElementById('status'); status.textContent='Enter Admin PIN'; status.className='text-red-700' }
+    async function hashPin(s){ const data=new TextEncoder().encode(s); const digest=await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('') }
+    function updatePinUi(){ const saved=localStorage.getItem('admin_pin_hash'); if(saved){ if(pinSetBtn) pinSetBtn.classList.add('hidden'); if(pinUnlockBtn) pinUnlockBtn.classList.remove('hidden') } else { if(pinSetBtn) pinSetBtn.classList.remove('hidden'); if(pinUnlockBtn) pinUnlockBtn.classList.add('hidden') } }
+    async function initPin(){ updatePinUi(); const saved=localStorage.getItem('admin_pin_hash'); const unlocked=sessionStorage.getItem('admin_unlocked')==='true'; if(saved && unlocked){ isUnlocked=true; if(pinMsg){ pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700' } } else { isUnlocked=false; showLocked() } }
+    initPin()
+    if (pinSetBtn) pinSetBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); if(!v){ pinMsg.textContent='Enter PIN'; pinMsg.className='ml-3 text-sm text-red-700'; return } const h=await hashPin(v); localStorage.setItem('admin_pin_hash', h); sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; pinMsg.textContent='Saved'; pinMsg.className='ml-3 text-sm text-green-700'; updatePinUi(); loadData() })
+    if (pinUnlockBtn) pinUnlockBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); const saved=localStorage.getItem('admin_pin_hash')||''; const h=await hashPin(v); if(h===saved){ sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700'; loadData() } else { pinMsg.textContent='Wrong PIN'; pinMsg.className='ml-3 text-sm text-red-700' } })
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
+      if (!isUnlocked) { showLocked(); tbody.innerHTML = ''; return }
       status.textContent = 'Loading...'
       status.className = 'text-gray-700'
       tbody.innerHTML = ''
@@ -117,6 +138,7 @@
     const delBtn = document.getElementById('deleteAll')
     if (delBtn) delBtn.addEventListener('click', async () => {
       const status = document.getElementById('status')
+      if (!isUnlocked) { showLocked(); return }
       const ok = confirm('Clear ALL local registrations?')
       if (!ok) return
       try { localStorage.removeItem('registrations'); status.textContent = 'Cleared'; status.className = 'text-green-700'; await loadData() }
@@ -126,6 +148,7 @@
     const rosterAddBtn = document.getElementById('rosterAddBtn')
     if (rosterAddBtn) rosterAddBtn.addEventListener('click', async () => {
       const msg = document.getElementById('rosterMsg')
+      if (!isUnlocked) { msg.textContent = 'Enter Admin PIN'; msg.className = 'ml-3 text-sm text-red-700'; return }
       msg.textContent = 'No backend configured'
       msg.className = 'ml-3 text-sm text-gray-700'
     })
@@ -151,6 +174,7 @@
     if (rosterUploadBtn) rosterUploadBtn.addEventListener('click', async () => {
       const fileInput = document.getElementById('rosterFile')
       const msg = document.getElementById('rosterUploadMsg')
+      if (!isUnlocked) { msg.textContent = 'Enter Admin PIN'; msg.className = 'ml-3 text-sm text-red-700'; return }
       msg.textContent = ''
       msg.className = 'ml-3 text-sm'
       const file = fileInput && fileInput.files && fileInput.files[0]
@@ -171,9 +195,6 @@
         msg.className += ' text-gray-700'
       } catch (_) { msg.textContent = 'Invalid file'; msg.className += ' text-red-700' }
     })
-  </script>
-</body>
-</html>
     const regNext = document.getElementById('regNext')
     const setNextBtn = document.getElementById('setNextBtn')
     const renumberBtn = document.getElementById('renumberBtn')
@@ -186,10 +207,12 @@
     }
     initReg()
     if (setNextBtn) setNextBtn.addEventListener('click', () => {
+      if (!isUnlocked) { regNoMsg.textContent = 'Enter Admin PIN'; regNoMsg.className = 'ml-3 text-sm text-red-700'; return }
       const v = parseInt(regNext.value || '1', 10) || 1
       try { localStorage.setItem('reg_counter', String(v)); regNoMsg.textContent = 'Saved'; regNoMsg.className = 'ml-3 text-sm text-green-700' } catch(_) { regNoMsg.textContent = 'Unable to save'; regNoMsg.className = 'ml-3 text-sm text-red-700' }
     })
     if (renumberBtn) renumberBtn.addEventListener('click', async () => {
+      if (!isUnlocked) { regNoMsg.textContent = 'Enter Admin PIN'; regNoMsg.className = 'ml-3 text-sm text-red-700'; return }
       const start = parseInt(regNext.value || '1', 10) || 1
       try {
         const list = JSON.parse(localStorage.getItem('registrations') || '[]')
@@ -205,3 +228,6 @@
         regNoMsg.className = 'ml-3 text-sm text-red-700'
       }
     })
+  </script>
+  </body>
+  </html>
