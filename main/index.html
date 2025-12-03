@@ -720,7 +720,7 @@
           if (res.ok && json && json.success) return { success: true, duplicate: false }
           if (json && json.duplicate) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
         } catch(_) {}
-        const base = getApiBase()
+        const base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
         if (base) {
           try {
             const url = new URL('/api/registrations', base).toString()

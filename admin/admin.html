@@ -37,6 +37,16 @@
       <div class="text-xs text-gray-600 mt-2">Leave empty to use localStorage only. On Vercel, you can also leave empty; the app will auto-use the built-in /api endpoint.</div>
     </div>
     <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Google Sheets Link</div>
+      <div class="flex items-center gap-3">
+        <input id="sheetUrlInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://docs.google.com/spreadsheets/d/..." />
+        <button id="sheetUrlSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
+        <a id="openSheetBtn" target="_blank" class="hidden rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700">Open Sheet</a>
+        <span id="sheetMsg" class="ml-3 text-sm"></span>
+      </div>
+      <div class="text-xs text-gray-600 mt-2">Save the link here for quick access. This does not change where data is saved (that is set in Vercel env vars).</div>
+    </div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
       <div class="text-blue-900 font-semibold mb-2">Add Student to Roster (fallback when Excel missing)</div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <input id="rosterEnrollment" type="text" placeholder="Enrollment No" class="rounded-md border border-blue-300 px-2 py-1" />
@@ -112,6 +122,39 @@
     function initApiBase(){ const v=getApiBase(); if(apiBaseInput) apiBaseInput.value=v }
     initApiBase()
     if (apiBaseSaveBtn) apiBaseSaveBtn.addEventListener('click', () => { const v=(apiBaseInput && apiBaseInput.value || '').trim(); try { if(v) localStorage.setItem('API_BASE', v); else localStorage.removeItem('API_BASE'); apiBaseMsg.textContent='Saved'; apiBaseMsg.className='ml-3 text-sm text-green-700' } catch(_) { apiBaseMsg.textContent='Unable to save'; apiBaseMsg.className='ml-3 text-sm text-red-700' } })
+
+    const sheetUrlInput = document.getElementById('sheetUrlInput')
+    const sheetUrlSaveBtn = document.getElementById('sheetUrlSaveBtn')
+    const openSheetBtn = document.getElementById('openSheetBtn')
+    const sheetMsg = document.getElementById('sheetMsg')
+    function initSheetUrl(){
+      const v = localStorage.getItem('ADMIN_SHEET_URL') || ''
+      if (sheetUrlInput) sheetUrlInput.value = v
+      if (v && openSheetBtn) {
+        openSheetBtn.href = v
+        openSheetBtn.classList.remove('hidden')
+      } else if (openSheetBtn) {
+        openSheetBtn.classList.add('hidden')
+      }
+    }
+    initSheetUrl()
+    if (sheetUrlSaveBtn) sheetUrlSaveBtn.addEventListener('click', () => {
+      const v = (sheetUrlInput && sheetUrlInput.value || '').trim()
+      try {
+        if (v) {
+          localStorage.setItem('ADMIN_SHEET_URL', v)
+          if (openSheetBtn) { openSheetBtn.href = v; openSheetBtn.classList.remove('hidden') }
+        } else {
+          localStorage.removeItem('ADMIN_SHEET_URL')
+          if (openSheetBtn) openSheetBtn.classList.add('hidden')
+        }
+        sheetMsg.textContent = 'Saved'
+        sheetMsg.className = 'ml-3 text-sm text-green-700'
+      } catch(_) {
+        sheetMsg.textContent = 'Unable to save'
+        sheetMsg.className = 'ml-3 text-sm text-red-700'
+      }
+    })
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
