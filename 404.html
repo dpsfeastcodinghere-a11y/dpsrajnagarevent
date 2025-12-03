@@ -4,17 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="refresh" content="0; url=main/index.html">
-  <title>Redirecting...</title>
+  <title>Not Found</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>body{background:#f9fafb}</style>
-  <link rel="preload" href="main/index.html" as="document">
 </head>
 <body class="flex items-center justify-center min-h-screen">
-  <script>window.location.href='main/index.html'</script>
   <div class="text-center">
-    <h1 class="text-xl font-bold text-blue-900 mb-4">Redirecting</h1>
-    <p class="mb-4 text-gray-700">Opening the main page…</p>
+    <h1 class="text-xl font-bold text-blue-900 mb-4">Page Not Found</h1>
+    <p class="mb-4 text-gray-700">Redirecting to the main page…</p>
     <a href="main/index.html" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">Go to Main Page</a>
   </div>
+  <script>setTimeout(function(){ location.href='main/index.html' }, 0)</script>
 </body>
 </html>
