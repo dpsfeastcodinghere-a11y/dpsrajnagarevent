@@ -712,7 +712,26 @@
       
       async function saveToNetlify() {
         try {
-          return { success: false, duplicate: false }
+          const raw = localStorage.getItem('registrations')
+          const list = raw ? JSON.parse(raw) : []
+          const isDup = (a, b) => {
+            if (!a || !b) return false
+            if (a.enrollment_no && b.enrollment_no && String(a.enrollment_no).trim() && String(a.enrollment_no).trim().toLowerCase() === String(b.enrollment_no).trim().toLowerCase()) return true
+            if (a.phone && b.phone && String(a.phone).trim() && String(a.phone).trim().toLowerCase() === String(b.phone).trim().toLowerCase()) return true
+            if (a.parent_phone && b.parent_phone && String(a.parent_phone).trim() && String(a.parent_phone).trim().toLowerCase() === String(b.parent_phone).trim().toLowerCase()) return true
+            if (a.employee_no && b.employee_no && String(a.employee_no).trim() && String(a.employee_no).trim().toLowerCase() === String(b.employee_no).trim().toLowerCase()) return true
+            const an = (a.name || a.student_name || '').trim().toLowerCase()
+            const bn = (b.name || b.student_name || '').trim().toLowerCase()
+            const al = (a.last_class || a.student_class || '').trim().toLowerCase()
+            const bl = (b.last_class || b.student_class || '').trim().toLowerCase()
+            if (an && bn && al && bl && an === bn && al === bl) return true
+            return false
+          }
+          const duplicate = list.some(item => isDup(item, payload))
+          if (duplicate) return { success: false, duplicate: true }
+          list.push(payload)
+          localStorage.setItem('registrations', JSON.stringify(list))
+          return { success: true, duplicate: false }
         } catch (_) { return { success: false, duplicate: false } }
       }
 
@@ -722,9 +741,6 @@
         return
       }
       const ok = netlifyRes && netlifyRes.success
-      if (ok) {
-        try { const list = JSON.parse(localStorage.getItem('registrations') || '[]'); list.push(payload); localStorage.setItem('registrations', JSON.stringify(list)) } catch (_) {}
-      }
       resultContainer.innerHTML = ok
         ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
         : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`

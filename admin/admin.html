@@ -68,16 +68,48 @@
     
     async function loadData(){
       const status = document.getElementById('status')
-      status.textContent = 'No backend configured'
+      const tbody = document.getElementById('rows')
+      status.textContent = 'Loading...'
       status.className = 'text-gray-700'
+      tbody.innerHTML = ''
+      try {
+        const list = JSON.parse(localStorage.getItem('registrations') || '[]')
+        status.textContent = `${list.length} records (localStorage)`
+        for (const r of list) {
+          const tr = document.createElement('tr')
+          tr.innerHTML = `
+            <td class="px-3 py-2">${r.timestamp || ''}</td>
+            <td class="px-3 py-2">${r.type || ''}</td>
+            <td class="px-3 py-2">${r.enrollment_no || ''}</td>
+            <td class="px-3 py-2">${r.name || ''}</td>
+            <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
+            <td class="px-3 py-2">${r.age || ''}</td>
+            <td class="px-3 py-2">${r.employee_no || ''}</td>
+            <td class="px-3 py-2">${r.last_class || ''}</td>
+            <td class="px-3 py-2">${r.org_name || ''}</td>
+            <td class="px-3 py-2">${r.org_addr || ''}</td>
+            <td class="px-3 py-2">${r.parent_name || ''}</td>
+            <td class="px-3 py-2">${r.parent_phone || ''}</td>
+            <td class="px-3 py-2">${r.student_name || ''}</td>
+            <td class="px-3 py-2">${r.student_class || ''}</td>
+            <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
+          `
+          tbody.appendChild(tr)
+        }
+      } catch (e) {
+        status.textContent = 'Unable to read localStorage'
+        status.className = 'text-red-700'
+      }
     }
     loadData()
 
     const delBtn = document.getElementById('deleteAll')
     if (delBtn) delBtn.addEventListener('click', async () => {
       const status = document.getElementById('status')
-      status.textContent = 'No backend configured'
-      status.className = 'text-gray-700'
+      const ok = confirm('Clear ALL local registrations?')
+      if (!ok) return
+      try { localStorage.removeItem('registrations'); status.textContent = 'Cleared'; status.className = 'text-green-700'; await loadData() }
+      catch (_) { status.textContent = 'Unable to clear'; status.className = 'text-red-700' }
     })
 
     const rosterAddBtn = document.getElementById('rosterAddBtn')
