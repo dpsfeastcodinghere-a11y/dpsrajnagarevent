@@ -4,3 +4,7 @@ node_modules
 server.py
 test_server.py
 check_db.py
+*.env
+.vercel
+.netlify
+.render

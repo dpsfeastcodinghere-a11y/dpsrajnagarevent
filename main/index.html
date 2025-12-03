@@ -238,7 +238,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    try { window.API_BASE = localStorage.getItem('API_BASE') || window.API_BASE || '' } catch (_) {}
+    
     const categorySelect = document.getElementById('categorySelect')
     const enrollmentInput = document.getElementById('enrollmentInput')
     const enrollmentGroup = document.getElementById('enrollmentGroup')
@@ -313,11 +313,24 @@
       const ws = wb.Sheets[wb.SheetNames[0]]
       studentsRows = XLSX.utils.sheet_to_json(ws, { defval: '' })
     }
+    async function ensureStudentsLoadedStable() {
+      if (studentsRows) return
+      const candidates = ['/main/roster.json','/main/students.json','/roster.json','/students.json']
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url, { cache: 'no-cache' })
+          if (res.ok) {
+            const data = await res.json()
+            if (Array.isArray(data)) { studentsRows = data; return }
+            if (data && Array.isArray(data.rows)) { studentsRows = data.rows; return }
+          }
+        } catch(_) {}
+      }
+    }
     async function ensureStudentsLoadedFallback() {
       if (studentsRows) return
       try {
-        const API_BASE = (window.API_BASE || '').replace(/\/+$/,'')
-        const resDb = await fetch(`${API_BASE}/.netlify/functions/roster`)
+        return
         if (resDb.ok) {
           const json = await resDb.json()
           if (json.success && Array.isArray(json.rows) && json.rows.length) {
@@ -589,7 +602,8 @@
       const enrollment_no = enrollmentInput.value.trim()
       if (!enrollment_no) return renderNotFound('Enter an enrollment number')
       try {
-        await ensureStudentsLoaded()
+        await ensureStudentsLoadedStable()
+        if (!studentsRows) await ensureStudentsLoaded()
         const r = findStudentByEnrollment(enrollment_no)
         if (r) { updateTicket({ enrollment_no, name: r.name, row: r.row }) }
         else renderNotFound('Student not found')
@@ -696,18 +710,9 @@
       payload.reg_no = reg_no
       
       
-      const API_BASE = (window.API_BASE || '').replace(/\/+$/,'')
       async function saveToNetlify() {
         try {
-          const res = await fetch(`${API_BASE}/.netlify/functions/save_to_db`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-          const duplicate = res.status === 409
-          if (!res.ok) return { success: false, duplicate }
-          const json = await res.json()
-          return { success: !!json.success, duplicate }
+          return { success: false, duplicate: false }
         } catch (_) { return { success: false, duplicate: false } }
       }
 
@@ -1002,13 +1007,7 @@
         try {
           // 1. Try fetching from SQL Database (via Netlify Function)
           try {
-            const resDb = await fetch(`${API_BASE}/.netlify/functions/list`)
-            if (resDb.ok) {
-              const json = await resDb.json()
-              if (json.success && Array.isArray(json.rows) && json.rows.length > 0) {
-                return json.rows
-              }
-            }
+            return []
           } catch (err) { console.log('SQL fetch failed', err); return [] }
         } catch (e) { 
           console.error(e); 

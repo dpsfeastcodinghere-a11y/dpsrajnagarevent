@@ -30,6 +30,14 @@
         <span id="rosterMsg" class="ml-3 text-sm"></span>
       </div>
     </div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Upload Roster File (CSV/JSON)</div>
+      <div class="flex items-center gap-3">
+        <input id="rosterFile" type="file" accept=".csv,.json,application/json,text/csv" class="rounded-md border border-blue-300 px-2 py-1" />
+        <button id="rosterUploadBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Upload File</button>
+        <span id="rosterUploadMsg" class="ml-3 text-sm"></span>
+      </div>
+    </div>
     <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-100 text-gray-700">
@@ -57,96 +65,68 @@
   </main>
 
   <script>
-    try { window.API_BASE = localStorage.getItem('API_BASE') || window.API_BASE || '' } catch (_) {}
+    
     async function loadData(){
       const status = document.getElementById('status')
-      const tbody = document.getElementById('rows')
-      status.textContent = 'Loading...'
-      tbody.innerHTML = ''
-      try {
-        const base = (window.API_BASE || '').replace(/\/+$/,'')
-        const res = await fetch(`${base}/.netlify/functions/list`)
-        const json = await res.json()
-        if (!json.success) {
-          status.textContent = 'Unable to load data'
-          status.className = 'text-red-700'
-          return
-        }
-        const rows = json.rows || []
-        status.textContent = `${rows.length} records`
-        status.className = 'text-gray-700'
-        for (const r of rows) {
-          const tr = document.createElement('tr')
-          tr.innerHTML = `
-            <td class="px-3 py-2">${r.timestamp || ''}</td>
-            <td class="px-3 py-2">${r.type || ''}</td>
-            <td class="px-3 py-2">${r.enrollment_no || ''}</td>
-            <td class="px-3 py-2">${r.name || ''}</td>
-            <td class="px-3 py-2">${r.phone || ''}</td>
-            <td class="px-3 py-2">${r.age || ''}</td>
-            <td class="px-3 py-2">${r.employee_no || ''}</td>
-            <td class="px-3 py-2">${r.last_class || ''}</td>
-            <td class="px-3 py-2">${r.org_name || ''}</td>
-            <td class="px-3 py-2">${r.org_addr || ''}</td>
-            <td class="px-3 py-2">${r.parent_name || ''}</td>
-            <td class="px-3 py-2">${r.parent_phone || ''}</td>
-            <td class="px-3 py-2">${r.student_name || ''}</td>
-            <td class="px-3 py-2">${r.student_class || ''}</td>
-            <td class="px-3 py-2">${r.competitions || ''}</td>
-          `
-          tbody.appendChild(tr)
-        }
-      } catch (e) {
-        status.textContent = 'Unable to reach server'
-        status.className = 'text-red-700'
-      }
+      status.textContent = 'No backend configured'
+      status.className = 'text-gray-700'
     }
     loadData()
 
     const delBtn = document.getElementById('deleteAll')
     if (delBtn) delBtn.addEventListener('click', async () => {
       const status = document.getElementById('status')
-      const ok = confirm('Delete ALL registrations? This cannot be undone.')
-      if (!ok) return
-      const secret = prompt('Enter admin secret') || ''
-      if (!secret) return
-      try {
-        const base = (window.API_BASE || '').replace(/\/+$/,'')
-        const res = await fetch(`${base}/.netlify/functions/delete-all`, { method: 'POST', headers: { 'X-Config-Secret': secret } })
-        const json = await res.json()
-        if (json.success) {
-          status.textContent = json.message || 'Deleted'
-          status.className = 'text-green-700'
-          await loadData()
-        } else {
-          status.textContent = json.message || 'Unable to delete'
-          status.className = 'text-red-700'
-        }
-      } catch (e) {
-        status.textContent = 'Unable to reach server'
-        status.className = 'text-red-700'
-      }
+      status.textContent = 'No backend configured'
+      status.className = 'text-gray-700'
     })
 
     const rosterAddBtn = document.getElementById('rosterAddBtn')
     if (rosterAddBtn) rosterAddBtn.addEventListener('click', async () => {
-      const enr = document.getElementById('rosterEnrollment').value.trim()
-      const nm = document.getElementById('rosterName').value.trim()
-      const cls = document.getElementById('rosterClass').value.trim()
       const msg = document.getElementById('rosterMsg')
+      msg.textContent = 'No backend configured'
+      msg.className = 'ml-3 text-sm text-gray-700'
+    })
+
+    function parseCsv(text) {
+      const lines = text.split(/\r?\n/).filter(Boolean)
+      if (!lines.length) return []
+      const headers = lines[0].split(',').map(h => h.trim())
+      const rows = []
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
+        const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
+        const obj = {}
+        headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
+        rows.push(obj)
+      }
+      return rows
+    }
+
+    async function sendRosterRows(rows) { return { okCount: 0, failCount: rows.length } }
+
+    const rosterUploadBtn = document.getElementById('rosterUploadBtn')
+    if (rosterUploadBtn) rosterUploadBtn.addEventListener('click', async () => {
+      const fileInput = document.getElementById('rosterFile')
+      const msg = document.getElementById('rosterUploadMsg')
       msg.textContent = ''
       msg.className = 'ml-3 text-sm'
-      if (!enr || !nm) { msg.textContent = 'Enter Enrollment and Name'; msg.className += ' text-red-700'; return }
+      const file = fileInput && fileInput.files && fileInput.files[0]
+      if (!file) { msg.textContent = 'Choose a file'; msg.className += ' text-red-700'; return }
       try {
-        const base = (window.API_BASE || '').replace(/\/+$/,'')
-        const res = await fetch(`${base}/.netlify/functions/roster`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enrollment_no: enr, name: nm, student_class: cls })
-        })
-        const json = await res.json()
-        if (json.success) { msg.textContent = 'Added'; msg.className += ' text-green-700' }
-        else { msg.textContent = json.message || 'Failed'; msg.className += ' text-red-700' }
-      } catch (_) { msg.textContent = 'Network error'; msg.className += ' text-red-700' }
+        const name = file.name.toLowerCase()
+        const text = await file.text()
+        let rows = []
+        if (name.endsWith('.json')) {
+          const data = JSON.parse(text)
+          rows = Array.isArray(data) ? data : (Array.isArray(data.rows) ? data.rows : [])
+        } else {
+          rows = parseCsv(text)
+        }
+        if (!rows.length) { msg.textContent = 'No rows found'; msg.className += ' text-red-700'; return }
+        const res = await sendRosterRows(rows)
+        msg.textContent = `Uploaded: ${res.okCount}, Failed: ${res.failCount}`
+        msg.className += ' text-gray-700'
+      } catch (_) { msg.textContent = 'Invalid file'; msg.className += ' text-red-700' }
     })
   </script>
 </body>

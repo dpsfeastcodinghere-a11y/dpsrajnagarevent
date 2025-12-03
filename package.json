@@ -2,10 +2,7 @@
   "name": "dpsrajnagar-carnival",
   "private": true,
   "version": "1.0.0",
-  "description": "Static site with Netlify Functions for registrations",
+  "description": "Static site",
   "license": "UNLICENSED",
-  "dependencies": {
-    "@netlify/blobs": "^6.3.0",
-    "pg": "^8.11.3"
-  }
+  "dependencies": {}
 }
