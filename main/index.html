@@ -23,7 +23,7 @@
 <body class="min-h-screen">
   <div class="sunburst absolute inset-0 pointer-events-none"></div>
   <header class="py-6 px-6 max-w-5xl mx-auto flex items-center gap-4">
-    <img src="/image.png" alt="DPS Rajnagar Logo" class="h-14 w-auto" onerror="this.style.display='none'">
+    <img src="image.png" alt="DPS Rajnagar Logo" class="h-14 w-auto" onerror="this.style.display='none'">
     <div>
       <h1 class="text-3xl md:text-4xl tracking-tight text-red-800 font-bold" style="font-family: Arial, Helvetica, sans-serif;">DPS Rajnagar, Ghaziabad 'समन्वय हाट' - Carnival 2025</h1>
       <p class="mt-1 text-sm md:text-base text-blue-900">Registration Form</p>
@@ -172,7 +172,7 @@
           </div>
           <div id="qrCard" class="hidden mt-4 ticket cutouts p-6">
             <div class="flex items-center gap-4">
-              <img src="/image.png" alt="DPS Rajnagar Logo" class="h-16 w-auto" onerror="this.style.display='none'">
+              <img src="image.png" alt="DPS Rajnagar Logo" class="h-16 w-auto" onerror="this.style.display='none'">
               <div class="leading-tight">
                 <div class="text-2xl md:text-3xl text-red-800 font-bold">DPS Rajnagar</div>
                 <div class="text-lg md:text-xl text-blue-900">समन्वय हाट 2025</div>
@@ -286,17 +286,17 @@
     async function resolveStudentFileUrl() {
       if (studentFileUrl) return studentFileUrl
       const candidates = [
-        '/main/STUDENT LIST AS ON 1.12.25.xlsx',
-        '/main/STUDENT%20LIST%20AS%20ON%201.12.25.xlsx',
-        '/STUDENT LIST AS ON 1.12.25.xlsx',
-        '/admin/student data.xlsx',
-        '/student data.xlsx',
-        '/admin/student.xlsx','/admin/student.xls','/admin/student.xl',
-        '/student.xlsx','/student.xls','/student.xl'
+        'main/STUDENT LIST AS ON 1.12.25.xlsx',
+        'main/STUDENT%20LIST%20AS%20ON%201.12.25.xlsx',
+        'STUDENT LIST AS ON 1.12.25.xlsx',
+        'admin/student data.xlsx',
+        'student data.xlsx',
+        'admin/student.xlsx','admin/student.xls','admin/student.xl',
+        'student.xlsx','student.xls','student.xl'
       ]
       for (const url of candidates) {
         try {
-          const tryUrl = encodeURI(url)
+          const tryUrl = new URL(url, window.location.href).toString()
           const res = await fetch(tryUrl, { cache: 'no-cache' })
           if (res.ok) { studentFileUrl = tryUrl; return studentFileUrl }
         } catch (_) {}
@@ -315,10 +315,10 @@
     }
     async function ensureStudentsLoadedStable() {
       if (studentsRows) return
-      const candidates = ['/main/roster.json','/main/students.json','/roster.json','/students.json']
+      const candidates = ['main/roster.json','main/students.json','roster.json','students.json']
       for (const url of candidates) {
         try {
-          const res = await fetch(url, { cache: 'no-cache' })
+          const res = await fetch(new URL(url, window.location.href).toString(), { cache: 'no-cache' })
           if (res.ok) {
             const data = await res.json()
             if (Array.isArray(data)) { studentsRows = data; return }
@@ -715,14 +715,31 @@
       
       async function saveToNetlify() {
         try {
+          const res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          const json = await res.json().catch(() => ({}))
+          if (res.ok && json && json.success) return { success: true, duplicate: false }
+          if (json && json.duplicate) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
+        } catch(_) {}
+        const base = getApiBase()
+        if (base) {
+          try {
+            const url = new URL('/api/registrations', base).toString()
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            const json = await res.json().catch(() => ({}))
+            if (res.ok && json && json.success) return { success: true, duplicate: false }
+            if (json && json.duplicate) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
+          } catch (_) {}
+        }
+        try {
           const raw = localStorage.getItem('registrations')
           const list = raw ? JSON.parse(raw) : []
           const isDup = (a, b) => {
             if (!a || !b) return false
-            if (a.enrollment_no && b.enrollment_no && String(a.enrollment_no).trim() && String(a.enrollment_no).trim().toLowerCase() === String(b.enrollment_no).trim().toLowerCase()) return true
-            if (a.phone && b.phone && String(a.phone).trim() && String(a.phone).trim().toLowerCase() === String(b.phone).trim().toLowerCase()) return true
-            if (a.parent_phone && b.parent_phone && String(a.parent_phone).trim() && String(a.parent_phone).trim().toLowerCase() === String(b.parent_phone).trim().toLowerCase()) return true
-            if (a.employee_no && b.employee_no && String(a.employee_no).trim() && String(a.employee_no).trim().toLowerCase() === String(b.employee_no).trim().toLowerCase()) return true
+            const eq = (x, y) => String(x || '').trim().toLowerCase() === String(y || '').trim().toLowerCase()
+            if (a.enrollment_no && b.enrollment_no && eq(a.enrollment_no, b.enrollment_no)) return true
+            if (a.phone && b.phone && eq(a.phone, b.phone)) return true
+            if (a.parent_phone && b.parent_phone && eq(a.parent_phone, b.parent_phone)) return true
+            if (a.employee_no && b.employee_no && eq(a.employee_no, b.employee_no)) return true
             const an = (a.name || a.student_name || '').trim().toLowerCase()
             const bn = (b.name || b.student_name || '').trim().toLowerCase()
             const al = (a.last_class || a.student_class || '').trim().toLowerCase()
@@ -730,8 +747,8 @@
             if (an && bn && al && bl && an === bn && al === bl) return true
             return false
           }
-          const duplicate = list.some(item => isDup(item, payload))
-          if (duplicate) return { success: false, duplicate: true }
+          const existing = list.find(item => isDup(item, payload))
+          if (existing) return { success: false, duplicate: true, existingRegNo: existing.reg_no || '' }
           list.push(payload)
           localStorage.setItem('registrations', JSON.stringify(list))
           return { success: true, duplicate: false }
@@ -740,7 +757,8 @@
 
       const netlifyRes = await saveToNetlify()
       if (netlifyRes && netlifyRes.duplicate) {
-        resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered</div></div>`
+        const oldNo = netlifyRes.existingRegNo ? ` • No: ${netlifyRes.existingRegNo}` : ''
+        resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered${oldNo}</div></div>`
         return
       }
       const ok = netlifyRes && netlifyRes.success
@@ -751,7 +769,7 @@
         ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
         : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`
       if (ok) {
-        try { localStorage.setItem('reg_counter', String(counter + 1)) } catch (_) {}
+        try { localStorage.setItem('reg_counter', String(counter + 1)); window.dispatchEvent(new Event('registrations-updated')) } catch (_) {}
       }
       if (currentType === 'student') {
         details.innerHTML = `
@@ -1003,8 +1021,9 @@
 
         if (found) {
           const name = found['name'] || found['Name'] || found['Student Name'] || found['Parent Name'] || found['student_name'] || 'Unknown'
-          const cat = found['category'] || found['Category'] || 'Unknown'
-          const comps = found['competitions'] || found['Competitions'] || ''
+          const cat = found['category'] || found['Category'] || found['type'] || 'Unknown'
+          const compsRaw = found['competitions'] || found['Competitions'] || ''
+          const comps = Array.isArray(compsRaw) ? compsRaw.join(', ') : compsRaw
           verifyResult.className = 'p-2 rounded-md text-sm bg-green-50 border border-green-200 text-green-800 mb-2'
           verifyResult.innerHTML = `
             <div class="font-bold">SUCCESS: Verified</div>
@@ -1046,30 +1065,43 @@
         const valRaw = (pinInput.value || '').trim()
         const val = normalizeDigits(valRaw)
         const target = normalizeDigits(window.ADMIN_PIN || '9834')
-        if (val && val === target) { closePin(); panel.classList.remove('hidden'); try { sessionStorage.setItem('admin_unlocked','true') } catch(_) {}; refreshStatus() }
+        if (val && val === target) { closePin(); panel.classList.remove('hidden'); try { sessionStorage.setItem('admin_unlocked','true') } catch(_) {}; startLiveCounter(); refreshStatus() }
         else { pinMsg.textContent = 'Incorrect PIN' }
       }
       
+      function getLocalRegistrations(){
+        try { return JSON.parse(localStorage.getItem('registrations') || '[]') } catch(_) { return [] }
+      }
+      function getApiBase(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } }
       async function fetchRegistrations(){
-        try {
-          // 1. Try fetching from SQL Database (via Netlify Function)
+        const base = getApiBase()
+        if (base) {
           try {
-            return []
-          } catch (err) { console.log('SQL fetch failed', err); return [] }
-        } catch (e) { 
-          console.error(e); 
-          if(totalRegCount) totalRegCount.textContent = 'Err'
-          if(lastSyncTime) lastSyncTime.textContent = e.message
-          return [] 
+            const url = new URL('/api/registrations', base).toString()
+            const res = await fetch(url, { cache: 'no-cache' })
+            if (res.ok) {
+              const json = await res.json()
+              if (json && json.success && Array.isArray(json.rows)) return json.rows
+            }
+          } catch(_) {}
         }
+        return getLocalRegistrations()
       }
 
+      let liveTimer
       async function refreshStatus(){
         const remote = await fetchRegistrations()
         const total = remote.length
         if(totalRegCount) totalRegCount.textContent = total
         if(lastSyncTime) lastSyncTime.textContent = 'Synced: ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         if(exportBtn) exportBtn.textContent = `Excel (${total})`
+      }
+      function startLiveCounter(){
+        if (liveTimer) clearInterval(liveTimer)
+        liveTimer = setInterval(() => {
+          const total = getLocalRegistrations().length
+          if(totalRegCount) totalRegCount.textContent = total
+        }, 1000)
       }
 
       async function exportExcel(){
@@ -1137,6 +1169,7 @@
       if (viewAllBtn) viewAllBtn.addEventListener('click', showFullDb)
       if (closeDbBtn) closeDbBtn.addEventListener('click', () => fullDbModal.classList.add('hidden'))
       if (modalExportBtn) modalExportBtn.addEventListener('click', downloadCSV)
+      window.addEventListener('registrations-updated', refreshStatus)
     })()
   </script>
   </body>

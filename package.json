@@ -4,5 +4,7 @@
   "version": "1.0.0",
   "description": "Static site",
   "license": "UNLICENSED",
-  "dependencies": {}
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
 }

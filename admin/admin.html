@@ -10,10 +10,10 @@
   <header class="py-6 px-6 max-w-6xl mx-auto flex items-center justify-between">
     <div class="text-2xl font-bold text-blue-900">Admin Panel</div>
     <div class="flex items-center gap-3">
-      <a href="/static-site/student-data.xlsx" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Download Student Data Excel</a>
-      <a href="/static-site/export.xlsx" class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Download Excel</a>
+      <a href="../main/STUDENT%20LIST%20AS%20ON%201.12.25.xlsx" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Download Student Data Excel</a>
+      <a href="../main/index.html" class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Open Main</a>
       <button id="deleteAll" class="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700">Delete All</button>
-      <a href="/" class="inline-flex items-center rounded-md border border-blue-200 px-4 py-2 text-blue-700">Back</a>
+      <a href="../main/index.html" class="inline-flex items-center rounded-md border border-blue-200 px-4 py-2 text-blue-700">Back</a>
     </div>
   </header>
   <main class="max-w-6xl mx-auto px-6">
@@ -26,6 +26,15 @@
         <button id="pinUnlockBtn" class="rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700 hidden">Unlock</button>
         <span id="pinMsg" class="ml-3 text-sm"></span>
       </div>
+    </div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Backend Settings</div>
+      <div class="flex items-center gap-3">
+        <input id="apiBaseInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://your-vercel-domain.vercel.app" />
+        <button id="apiBaseSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
+        <span id="apiBaseMsg" class="ml-3 text-sm"></span>
+      </div>
+      <div class="text-xs text-gray-600 mt-2">Leave empty to use localStorage only. On Vercel, you can also leave empty; the app will auto-use the built-in /api endpoint.</div>
     </div>
     <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
       <div class="text-blue-900 font-semibold mb-2">Add Student to Roster (fallback when Excel missing)</div>
@@ -96,13 +105,87 @@
     initPin()
     if (pinSetBtn) pinSetBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); if(!v){ pinMsg.textContent='Enter PIN'; pinMsg.className='ml-3 text-sm text-red-700'; return } const h=await hashPin(v); localStorage.setItem('admin_pin_hash', h); sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; pinMsg.textContent='Saved'; pinMsg.className='ml-3 text-sm text-green-700'; updatePinUi(); loadData() })
     if (pinUnlockBtn) pinUnlockBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); const saved=localStorage.getItem('admin_pin_hash')||''; const h=await hashPin(v); if(h===saved){ sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700'; loadData() } else { pinMsg.textContent='Wrong PIN'; pinMsg.className='ml-3 text-sm text-red-700' } })
+    const apiBaseInput = document.getElementById('apiBaseInput')
+    const apiBaseSaveBtn = document.getElementById('apiBaseSaveBtn')
+    const apiBaseMsg = document.getElementById('apiBaseMsg')
+    function getApiBase(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } }
+    function initApiBase(){ const v=getApiBase(); if(apiBaseInput) apiBaseInput.value=v }
+    initApiBase()
+    if (apiBaseSaveBtn) apiBaseSaveBtn.addEventListener('click', () => { const v=(apiBaseInput && apiBaseInput.value || '').trim(); try { if(v) localStorage.setItem('API_BASE', v); else localStorage.removeItem('API_BASE'); apiBaseMsg.textContent='Saved'; apiBaseMsg.className='ml-3 text-sm text-green-700' } catch(_) { apiBaseMsg.textContent='Unable to save'; apiBaseMsg.className='ml-3 text-sm text-red-700' } })
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
-      if (!isUnlocked) { showLocked(); tbody.innerHTML = ''; return }
       status.textContent = 'Loading...'
       status.className = 'text-gray-700'
       tbody.innerHTML = ''
+      try {
+        const resRel = await fetch('/api/registrations', { cache: 'no-cache' })
+        if (resRel.ok) {
+          const jsonRel = await resRel.json()
+          if (jsonRel && jsonRel.success && Array.isArray(jsonRel.rows)) {
+            status.textContent = `${jsonRel.rows.length} records (API)`
+            for (const r of jsonRel.rows) {
+              const tr = document.createElement('tr')
+              tr.innerHTML = `
+                <td class="px-3 py-2">${r.reg_no || ''}</td>
+                <td class="px-3 py-2">${r.timestamp || ''}</td>
+                <td class="px-3 py-2">${r.type || ''}</td>
+                <td class="px-3 py-2">${r.enrollment_no || ''}</td>
+                <td class="px-3 py-2">${r.name || ''}</td>
+                <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
+                <td class="px-3 py-2">${r.age || ''}</td>
+                <td class="px-3 py-2">${r.employee_no || ''}</td>
+                <td class="px-3 py-2">${r.last_class || ''}</td>
+                <td class="px-3 py-2">${r.org_name || ''}</td>
+                <td class="px-3 py-2">${r.org_addr || ''}</td>
+                <td class="px-3 py-2">${r.parent_name || ''}</td>
+                <td class="px-3 py-2">${r.parent_phone || ''}</td>
+                <td class="px-3 py-2">${r.student_name || ''}</td>
+                <td class="px-3 py-2">${r.student_class || ''}</td>
+                <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
+              `
+              tbody.appendChild(tr)
+            }
+            return
+          }
+        }
+      } catch(_) {}
+      const base = getApiBase()
+      try {
+        if (base) {
+          const url = new URL('/api/registrations', base).toString()
+          const res = await fetch(url, { cache: 'no-cache' })
+          if (res.ok) {
+            const json = await res.json()
+            if (json && json.success && Array.isArray(json.rows)) {
+              status.textContent = `${json.rows.length} records (API)`
+              for (const r of json.rows) {
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                  <td class="px-3 py-2">${r.reg_no || ''}</td>
+                  <td class="px-3 py-2">${r.timestamp || ''}</td>
+                  <td class="px-3 py-2">${r.type || ''}</td>
+                  <td class="px-3 py-2">${r.enrollment_no || ''}</td>
+                  <td class="px-3 py-2">${r.name || ''}</td>
+                  <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
+                  <td class="px-3 py-2">${r.age || ''}</td>
+                  <td class="px-3 py-2">${r.employee_no || ''}</td>
+                  <td class="px-3 py-2">${r.last_class || ''}</td>
+                  <td class="px-3 py-2">${r.org_name || ''}</td>
+                  <td class="px-3 py-2">${r.org_addr || ''}</td>
+                  <td class="px-3 py-2">${r.parent_name || ''}</td>
+                  <td class="px-3 py-2">${r.parent_phone || ''}</td>
+                  <td class="px-3 py-2">${r.student_name || ''}</td>
+                  <td class="px-3 py-2">${r.student_class || ''}</td>
+                  <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
+                `
+                tbody.appendChild(tr)
+              }
+              return
+            }
+          }
+        }
+      } catch(_) {}
       try {
         const list = JSON.parse(localStorage.getItem('registrations') || '[]')
         status.textContent = `${list.length} records (localStorage)`
@@ -134,6 +217,7 @@
       }
     }
     loadData()
+    window.addEventListener('registrations-updated', loadData)
 
     const delBtn = document.getElementById('deleteAll')
     if (delBtn) delBtn.addEventListener('click', async () => {

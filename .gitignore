@@ -1,10 +1,4 @@
-node_modules
-.DS_Store
+gen-lang-client-*.json
 .env
-server.py
-test_server.py
-check_db.py
+.env.*
 *.env
-.vercel
-.netlify
-.render
