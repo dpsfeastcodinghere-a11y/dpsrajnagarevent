@@ -706,7 +706,10 @@
       else if (currentType === 'alumni') { payload.name = currentPayload.name; payload.last_class = currentPayload.last_class; payload.org_name = currentPayload.org_name; payload.org_addr = currentPayload.org_addr }
       else { payload.name = currentPayload.name; payload.age = currentPayload.age; payload.phone = currentPayload.phone }
       // Only send to Google Sheets via Apps Script
-      const reg_no = `REG-${Date.now().toString(36).toUpperCase()}`
+      let counter = 1
+      try { counter = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch (_) {}
+      const pad = n => String(n).padStart(6, '0')
+      const reg_no = `REG-${pad(counter)}`
       payload.reg_no = reg_no
       
       
@@ -741,9 +744,15 @@
         return
       }
       const ok = netlifyRes && netlifyRes.success
+      
+      
+      
       resultContainer.innerHTML = ok
         ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
         : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`
+      if (ok) {
+        try { localStorage.setItem('reg_counter', String(counter + 1)) } catch (_) {}
+      }
       if (currentType === 'student') {
         details.innerHTML = `
           <div class="text-sm md:text-base">

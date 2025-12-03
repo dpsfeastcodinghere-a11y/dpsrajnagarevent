@@ -38,10 +38,20 @@
         <span id="rosterUploadMsg" class="ml-3 text-sm"></span>
       </div>
     </div>
+    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+      <div class="text-blue-900 font-semibold mb-2">Registration Numbers</div>
+      <div class="flex items-center gap-3">
+        <input id="regNext" type="number" min="1" class="rounded-md border border-blue-300 px-2 py-1 w-32" placeholder="Next" />
+        <button id="setNextBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Set Next</button>
+        <button id="renumberBtn" class="rounded-md bg-yellow-500 px-3 py-1.5 text-blue-900 font-semibold hover:bg-yellow-400">Renumber All</button>
+        <span id="regNoMsg" class="ml-3 text-sm"></span>
+      </div>
+    </div>
     <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-100 text-gray-700">
           <tr>
+            <th class="px-3 py-2 text-left">Reg No</th>
             <th class="px-3 py-2 text-left">Timestamp</th>
             <th class="px-3 py-2 text-left">Type</th>
             <th class="px-3 py-2 text-left">Enrollment No</th>
@@ -78,6 +88,7 @@
         for (const r of list) {
           const tr = document.createElement('tr')
           tr.innerHTML = `
+            <td class="px-3 py-2">${r.reg_no || ''}</td>
             <td class="px-3 py-2">${r.timestamp || ''}</td>
             <td class="px-3 py-2">${r.type || ''}</td>
             <td class="px-3 py-2">${r.enrollment_no || ''}</td>
@@ -163,3 +174,34 @@
   </script>
 </body>
 </html>
+    const regNext = document.getElementById('regNext')
+    const setNextBtn = document.getElementById('setNextBtn')
+    const renumberBtn = document.getElementById('renumberBtn')
+    const regNoMsg = document.getElementById('regNoMsg')
+    function pad(n){ return String(n).padStart(6,'0') }
+    function initReg(){
+      let c = 1
+      try { c = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch(_) {}
+      if (regNext) regNext.value = String(c)
+    }
+    initReg()
+    if (setNextBtn) setNextBtn.addEventListener('click', () => {
+      const v = parseInt(regNext.value || '1', 10) || 1
+      try { localStorage.setItem('reg_counter', String(v)); regNoMsg.textContent = 'Saved'; regNoMsg.className = 'ml-3 text-sm text-green-700' } catch(_) { regNoMsg.textContent = 'Unable to save'; regNoMsg.className = 'ml-3 text-sm text-red-700' }
+    })
+    if (renumberBtn) renumberBtn.addEventListener('click', async () => {
+      const start = parseInt(regNext.value || '1', 10) || 1
+      try {
+        const list = JSON.parse(localStorage.getItem('registrations') || '[]')
+        let i = start
+        for (const r of list) { r.reg_no = `REG-${pad(i)}`; i++ }
+        localStorage.setItem('registrations', JSON.stringify(list))
+        localStorage.setItem('reg_counter', String(i))
+        regNoMsg.textContent = 'Renumbered'
+        regNoMsg.className = 'ml-3 text-sm text-green-700'
+        await loadData()
+      } catch(_) {
+        regNoMsg.textContent = 'Unable to renumber'
+        regNoMsg.className = 'ml-3 text-sm text-red-700'
+      }
+    })
