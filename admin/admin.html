@@ -241,7 +241,13 @@
           throw new Error(json.message || 'Failed')
         }
       } catch (e) {
-        syncMsg.textContent = 'Sync Failed: ' + e.message
+        console.error(e)
+        if (e.message === 'Failed to fetch') {
+          syncMsg.textContent = 'Connection Failed. Check "Backend Settings" URL.'
+          alert('Error: Could not connect to the server.\n\n1. Check "Backend Settings" above.\n2. Ensure the URL is your active Vercel deployment (e.g., https://your-app.vercel.app).')
+        } else {
+          syncMsg.textContent = 'Sync Failed: ' + e.message
+        }
         syncMsg.className = 'ml-3 text-sm text-red-700'
       }
     })

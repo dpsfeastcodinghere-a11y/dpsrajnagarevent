@@ -1067,8 +1067,16 @@
            })
            const json = await res.json()
            if(res.ok && json.success) showMsg('Sync Successful!')
-           else showMsg('Sync Failed', 'text-red-700')
-         } catch(e) { showMsg('Error: ' + e.message, 'text-red-700') }
+           else showMsg('Sync Failed: ' + (json.message || 'Unknown error'), 'text-red-700')
+         } catch(e) {
+           console.error(e)
+           if (e.message === 'Failed to fetch') {
+             showMsg('Connection Failed. Check "Backend URL" in Config.', 'text-red-700')
+             alert('Error: Could not connect to the server.\n\n1. Go to "Configuration" (in Admin panel).\n2. Ensure "Backend URL" is set to your Vercel App URL (e.g., https://your-app.vercel.app).\n3. Ensure the URL has no trailing slash.')
+           } else {
+             showMsg('Error: ' + e.message, 'text-red-700')
+           }
+         }
        })
       const verifyResult = document.getElementById('verifyResult')
 
