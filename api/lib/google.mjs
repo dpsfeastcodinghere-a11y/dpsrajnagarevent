@@ -1,9 +1,8 @@
+import fs from 'fs'
+import path from 'path'
+import crypto from 'crypto'
 
-const fs = require('fs')
-const path = require('path')
-const crypto = require('crypto')
-
-function getGoogleCreds() {
+export function getGoogleCreds() {
   try {
     const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
     if (raw) return JSON.parse(raw)
@@ -26,7 +25,7 @@ function getGoogleCreds() {
 
 function b64url(buf) { return Buffer.from(buf).toString('base64').replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_') }
 
-async function getGoogleAccessToken(creds, scope) {
+export async function getGoogleAccessToken(creds, scope) {
   try {
     const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
     const now = Math.floor(Date.now() / 1000)
@@ -45,7 +44,7 @@ async function getGoogleAccessToken(creds, scope) {
 }
 
 // Append rows to a sheet
-async function appendToSheet(sheetId, range, values, token) {
+export async function appendToSheet(sheetId, range, values, token) {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ values }) })
@@ -54,7 +53,7 @@ async function appendToSheet(sheetId, range, values, token) {
 }
 
 // Clear sheet and write all rows (Overwrite)
-async function overwriteSheet(sheetId, range, values, token) {
+export async function overwriteSheet(sheetId, range, values, token) {
   try {
     // 1. Clear
     const clearUrl = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}:clear`
@@ -66,5 +65,3 @@ async function overwriteSheet(sheetId, range, values, token) {
     return res.ok
   } catch (_) { return false }
 }
-
-module.exports = { getGoogleCreds, getGoogleAccessToken, appendToSheet, overwriteSheet }

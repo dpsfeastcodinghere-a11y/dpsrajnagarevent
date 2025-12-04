@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>q
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1052,18 +1052,24 @@
       })
 
       if(syncSheetsBtn) syncSheetsBtn.addEventListener('click', async () => {
-        const ok = confirm('Overwrite Google Sheet with MongoDB data?')
-        if(!ok) return
-        showMsg('Syncing...', 'text-blue-700')
-        const base = getApiBase()
-        const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
-        try {
-          const res = await fetch(url)
-          const json = await res.json()
-          if(res.ok && json.success) showMsg('Sync Successful!')
-          else showMsg('Sync Failed', 'text-red-700')
-        } catch(e) { showMsg('Error: ' + e.message, 'text-red-700') }
-      })
+         const ok = confirm('Overwrite Google Sheet with MongoDB data?')
+         if(!ok) return
+         showMsg('Syncing...', 'text-blue-700')
+         const base = getApiBase()
+         const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
+         const sheetUrl = localStorage.getItem('ADMIN_SHEET_URL') || ''
+         
+         try {
+           const res = await fetch(url, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ sheetId: sheetUrl })
+           })
+           const json = await res.json()
+           if(res.ok && json.success) showMsg('Sync Successful!')
+           else showMsg('Sync Failed', 'text-red-700')
+         } catch(e) { showMsg('Error: ' + e.message, 'text-red-700') }
+       })
       const verifyResult = document.getElementById('verifyResult')
 
       

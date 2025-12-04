@@ -225,9 +225,14 @@
       
       const base = getApiBase() || ''
       const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
+      const sheetUrl = (sheetUrlInput && sheetUrlInput.value) || localStorage.getItem('ADMIN_SHEET_URL') || ''
       
       try {
-        const res = await fetch(url)
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sheetId: sheetUrl })
+        })
         const json = await res.json()
         if (res.ok && json.success) {
           syncMsg.textContent = 'Sync Successful!'

@@ -40,7 +40,16 @@ export default async function handler(req, res) {
     const allValues = [headers, ...rows];
 
     // 3. Overwrite Sheet
-    const sheetId = process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID;
+    let sheetId = process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID;
+    
+    // Allow overriding from request body (if user configured in UI)
+    if (req.body && req.body.sheetId) {
+      // Extract ID from URL if full URL provided
+      const match = req.body.sheetId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (match) sheetId = match[1];
+      else sheetId = req.body.sheetId;
+    }
+
     if (!sheetId) {
       return res.status(500).json({ success: false, message: 'GOOGLE_SHEETS_ID not set' });
     }
