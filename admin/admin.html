@@ -10,126 +10,178 @@
   <header class="py-6 px-6 max-w-6xl mx-auto flex items-center justify-between">
     <div class="text-2xl font-bold text-blue-900">Admin Panel</div>
     <div class="flex items-center gap-3">
-      <a href="../main/STUDENT%20LIST%20AS%20ON%201.12.25.xlsx" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700">Download Student Data Excel</a>
       <a href="../main/index.html" class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Open Main</a>
-      <button id="deleteAll" class="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700">Delete All</button>
       <a href="../main/index.html" class="inline-flex items-center rounded-md border border-blue-200 px-4 py-2 text-blue-700">Back</a>
     </div>
   </header>
   <main class="max-w-6xl mx-auto px-6">
     <div id="status" class="mb-3 text-sm"></div>
-    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
-      <div class="text-blue-900 font-semibold mb-2">Google Sheets Link</div>
-      <div class="flex items-center gap-3">
-        <input id="sheetUrlInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://docs.google.com/spreadsheets/d/..." />
-        <button id="sheetUrlSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
-        <a id="openSheetBtn" target="_blank" class="hidden rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700">Open Sheet</a>
-        <span id="sheetMsg" class="ml-3 text-sm"></span>
-      </div>
-      <div class="text-xs text-gray-600 mt-2">Save the link here for quick access. This does not change where data is saved (that is set in Vercel env vars).</div>
-    </div>
+
     <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
       <div class="text-blue-900 font-semibold mb-2">Admin PIN</div>
       <div class="flex items-center gap-3">
         <input id="pinInput" type="password" class="rounded-md border border-blue-300 px-2 py-1 w-40" placeholder="Enter PIN" />
         <button id="pinSetBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Set PIN</button>
         <button id="pinUnlockBtn" class="rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700 hidden">Unlock</button>
+        <a id="openSheetBtn" target="_blank" class="hidden rounded-md bg-green-600 px-3 py-1.5 text-white font-semibold hover:bg-green-700">Open Sheet</a>
         <span id="pinMsg" class="ml-3 text-sm"></span>
       </div>
     </div>
+
     <div id="protectedContent" class="hidden">
-    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
-      <div class="text-blue-900 font-semibold mb-2">Backend Settings</div>
-      <div class="flex items-center gap-3">
-        <input id="apiBaseInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://your-vercel-domain.vercel.app" />
-        <button id="apiBaseSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
-        <span id="apiBaseMsg" class="ml-3 text-sm"></span>
+      <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+        <div class="text-blue-900 font-semibold mb-2">Google Sheets Link (Configuration)</div>
+        <div class="flex items-center gap-3">
+          <input id="sheetUrlInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://docs.google.com/spreadsheets/d/..." />
+          <button id="sheetUrlSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
+          <span id="sheetMsg" class="ml-3 text-sm"></span>
+        </div>
+        <div class="text-xs text-gray-600 mt-2">Save the link here. It will appear next to the PIN unlock button.</div>
       </div>
-      <div class="text-xs text-gray-600 mt-2">Leave empty to use localStorage only. On Vercel, you can also leave empty; the app will auto-use the built-in /api endpoint.</div>
-    </div>
-    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
-      <div class="text-blue-900 font-semibold mb-2">Add Student to Roster (fallback when Excel missing)</div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input id="rosterEnrollment" type="text" placeholder="Enrollment No" class="rounded-md border border-blue-300 px-2 py-1" />
-        <input id="rosterName" type="text" placeholder="Student Name" class="rounded-md border border-blue-300 px-2 py-1" />
-        <input id="rosterClass" type="text" placeholder="Class (optional)" class="rounded-md border border-blue-300 px-2 py-1" />
+      <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+        <div class="text-blue-900 font-semibold mb-2">Backend Settings</div>
+        <div class="flex items-center gap-3">
+          <input id="apiBaseInput" type="url" class="rounded-md border border-blue-300 px-2 py-1 w-full" placeholder="https://your-vercel-domain.vercel.app" />
+          <button id="apiBaseSaveBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Save</button>
+          <span id="apiBaseMsg" class="ml-3 text-sm"></span>
+        </div>
+        <div class="text-xs text-gray-600 mt-2">Enter Vercel URL (e.g. https://dpsrajnagarevent.vercel.app) to fetch from MongoDB. Leave empty to use relative path (if hosted on Vercel).</div>
       </div>
-      <div class="mt-3">
-        <button id="rosterAddBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Add to Roster</button>
-        <span id="rosterMsg" class="ml-3 text-sm"></span>
+
+      <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-blue-900 font-semibold">Sync Actions</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="syncSheetsBtn" class="rounded-md bg-yellow-600 px-3 py-1.5 text-white font-semibold hover:bg-yellow-700">Sync Mongo to Sheets</button>
+          <span id="syncMsg" class="ml-3 text-sm"></span>
+        </div>
+        <div class="text-xs text-gray-600 mt-2">Warning: This overwrites the entire Google Sheet with data from MongoDB.</div>
       </div>
-    </div>
-    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
-      <div class="text-blue-900 font-semibold mb-2">Upload Roster File (CSV/JSON)</div>
-      <div class="flex items-center gap-3">
-        <input id="rosterFile" type="file" accept=".csv,.json,application/json,text/csv" class="rounded-md border border-blue-300 px-2 py-1" />
-        <button id="rosterUploadBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Upload File</button>
-        <span id="rosterUploadMsg" class="ml-3 text-sm"></span>
+
+      <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="px-3 py-2 text-left">Enrollment ID</th>
+              <th class="px-3 py-2 text-left">Student Name</th>
+              <th class="px-3 py-2 text-left">Phone</th>
+              <th class="px-3 py-2 text-left">Email</th>
+              <th class="px-3 py-2 text-left">Sector</th>
+              <th class="px-3 py-2 text-left">Employee No</th>
+              <th class="px-3 py-2 text-left">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y divide-gray-200 text-gray-900"></tbody>
+        </table>
       </div>
-    </div>
-    <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
-      <div class="text-blue-900 font-semibold mb-2">Registration Numbers</div>
-      <div class="flex items-center gap-3">
-        <input id="regNext" type="number" min="1" class="rounded-md border border-blue-300 px-2 py-1 w-32" placeholder="Next" />
-        <button id="setNextBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Set Next</button>
-        <button id="renumberBtn" class="rounded-md bg-yellow-500 px-3 py-1.5 text-blue-900 font-semibold hover:bg-yellow-400">Renumber All</button>
-        <span id="regNoMsg" class="ml-3 text-sm"></span>
-      </div>
-    </div>
-    <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-100 text-gray-700">
-          <tr>
-            <th class="px-3 py-2 text-left">Reg No</th>
-            <th class="px-3 py-2 text-left">Timestamp</th>
-            <th class="px-3 py-2 text-left">Type</th>
-            <th class="px-3 py-2 text-left">Enrollment No</th>
-            <th class="px-3 py-2 text-left">Name</th>
-            <th class="px-3 py-2 text-left">Phone</th>
-            <th class="px-3 py-2 text-left">Age</th>
-            <th class="px-3 py-2 text-left">Employee No</th>
-            <th class="px-3 py-2 text-left">Last Class</th>
-            <th class="px-3 py-2 text-left">Organisation</th>
-            <th class="px-3 py-2 text-left">Address</th>
-            <th class="px-3 py-2 text-left">Parent Name</th>
-            <th class="px-3 py-2 text-left">Parent Phone</th>
-            <th class="px-3 py-2 text-left">Student Name</th>
-            <th class="px-3 py-2 text-left">Student Class</th>
-            <th class="px-3 py-2 text-left">Competitions</th>
-          </tr>
-        </thead>
-        <tbody id="rows" class="divide-y divide-gray-200 text-gray-900"></tbody>
-      </table>
-    </div>
     </div>
   </main>
 
   <script>
+    // --- PIN Logic ---
     const pinInput = document.getElementById('pinInput')
     const pinSetBtn = document.getElementById('pinSetBtn')
     const pinUnlockBtn = document.getElementById('pinUnlockBtn')
     const pinMsg = document.getElementById('pinMsg')
     let isUnlocked = false
-    function showLocked(){ const status=document.getElementById('status'); status.textContent='Enter Admin PIN'; status.className='text-red-700' }
+
+    function showLocked(){ const status=document.getElementById('status'); status.textContent='Enter Admin PIN to view data'; status.className='text-red-700' }
     async function hashPin(s){ const data=new TextEncoder().encode(s); const digest=await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('') }
-    function updatePinUi(){ const saved=localStorage.getItem('admin_pin_hash'); if(saved){ if(pinSetBtn) pinSetBtn.classList.add('hidden'); if(pinUnlockBtn) pinUnlockBtn.classList.remove('hidden') } else { if(pinSetBtn) pinSetBtn.classList.remove('hidden'); if(pinUnlockBtn) pinUnlockBtn.classList.add('hidden') } }
-    function setProtected(visible){ const p=document.getElementById('protectedContent'); if(p) p.classList.toggle('hidden', !visible) }
-    async function initPin(){ updatePinUi(); const saved=localStorage.getItem('admin_pin_hash'); const unlocked=sessionStorage.getItem('admin_unlocked')==='true'; if(saved && unlocked){ isUnlocked=true; setProtected(true); if(pinMsg){ pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700' } } else { isUnlocked=false; setProtected(false); showLocked() } }
+    
+    function updatePinUi(){ 
+      const saved=localStorage.getItem('admin_pin_hash'); 
+      if(saved){ 
+        if(pinSetBtn) pinSetBtn.classList.add('hidden'); 
+        if(pinUnlockBtn) pinUnlockBtn.classList.remove('hidden') 
+      } else { 
+        if(pinSetBtn) pinSetBtn.classList.remove('hidden'); 
+        if(pinUnlockBtn) pinUnlockBtn.classList.add('hidden') 
+      } 
+    }
+
+    function setProtected(visible){ 
+      const p=document.getElementById('protectedContent'); 
+      if(p) p.classList.toggle('hidden', !visible) 
+    }
+
+    async function initPin(){ 
+      updatePinUi(); 
+      const saved=localStorage.getItem('admin_pin_hash'); 
+      const unlocked=sessionStorage.getItem('admin_unlocked')==='true'; 
+      if(saved && unlocked){ 
+        isUnlocked=true; 
+        setProtected(true); 
+        if(pinMsg){ pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700' }
+        loadData();
+      } else { 
+        isUnlocked=false; 
+        setProtected(false); 
+        showLocked() 
+      } 
+    }
     initPin()
-    if (pinSetBtn) pinSetBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); if(!v){ pinMsg.textContent='Enter PIN'; pinMsg.className='ml-3 text-sm text-red-700'; return } const h=await hashPin(v); localStorage.setItem('admin_pin_hash', h); sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; setProtected(true); pinMsg.textContent='Saved'; pinMsg.className='ml-3 text-sm text-green-700'; updatePinUi(); loadData() })
-    if (pinUnlockBtn) pinUnlockBtn.addEventListener('click', async () => { const v=(pinInput && pinInput.value || '').trim(); const saved=localStorage.getItem('admin_pin_hash')||''; const h=await hashPin(v); if(h===saved){ sessionStorage.setItem('admin_unlocked','true'); isUnlocked=true; setProtected(true); pinMsg.textContent='Unlocked'; pinMsg.className='ml-3 text-sm text-green-700'; loadData() } else { pinMsg.textContent='Wrong PIN'; pinMsg.className='ml-3 text-sm text-red-700' } })
+
+    if (pinSetBtn) pinSetBtn.addEventListener('click', async () => { 
+      const v=(pinInput && pinInput.value || '').trim(); 
+      if(!v){ pinMsg.textContent='Enter PIN'; pinMsg.className='ml-3 text-sm text-red-700'; return } 
+      const h=await hashPin(v); 
+      localStorage.setItem('admin_pin_hash', h); 
+      sessionStorage.setItem('admin_unlocked','true'); 
+      isUnlocked=true; 
+      setProtected(true); 
+      pinMsg.textContent='Saved'; 
+      pinMsg.className='ml-3 text-sm text-green-700'; 
+      updatePinUi(); 
+      loadData() 
+    })
+
+    if (pinUnlockBtn) pinUnlockBtn.addEventListener('click', async () => { 
+      const v=(pinInput && pinInput.value || '').trim(); 
+      const saved=localStorage.getItem('admin_pin_hash')||''; 
+      const h=await hashPin(v); 
+      if(h===saved){ 
+        sessionStorage.setItem('admin_unlocked','true'); 
+        isUnlocked=true; 
+        setProtected(true); 
+        pinMsg.textContent='Unlocked'; 
+        pinMsg.className='ml-3 text-sm text-green-700'; 
+        loadData() 
+      } else { 
+        pinMsg.textContent='Wrong PIN'; 
+        pinMsg.className='ml-3 text-sm text-red-700' 
+      } 
+    })
+
+    // --- API Base Logic ---
     const apiBaseInput = document.getElementById('apiBaseInput')
     const apiBaseSaveBtn = document.getElementById('apiBaseSaveBtn')
     const apiBaseMsg = document.getElementById('apiBaseMsg')
+
     function getApiBase(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } }
     function initApiBase(){ const v=getApiBase(); if(apiBaseInput) apiBaseInput.value=v }
     initApiBase()
-    if (apiBaseSaveBtn) apiBaseSaveBtn.addEventListener('click', () => { const v=(apiBaseInput && apiBaseInput.value || '').trim(); try { if(v) localStorage.setItem('API_BASE', v); else localStorage.removeItem('API_BASE'); apiBaseMsg.textContent='Saved'; apiBaseMsg.className='ml-3 text-sm text-green-700' } catch(_) { apiBaseMsg.textContent='Unable to save'; apiBaseMsg.className='ml-3 text-sm text-red-700' } })
 
+    if (apiBaseSaveBtn) apiBaseSaveBtn.addEventListener('click', () => { 
+      const v=(apiBaseInput && apiBaseInput.value || '').trim(); 
+      try { 
+        if(v) localStorage.setItem('API_BASE', v); 
+        else localStorage.removeItem('API_BASE'); 
+        apiBaseMsg.textContent='Saved'; 
+        apiBaseMsg.className='ml-3 text-sm text-green-700'; 
+        loadData(); // Reload with new base
+      } catch(_) { 
+        apiBaseMsg.textContent='Unable to save'; 
+        apiBaseMsg.className='ml-3 text-sm text-red-700' 
+      } 
+    })
+
+    // --- Sheet URL Logic ---
     const sheetUrlInput = document.getElementById('sheetUrlInput')
     const sheetUrlSaveBtn = document.getElementById('sheetUrlSaveBtn')
     const openSheetBtn = document.getElementById('openSheetBtn')
     const sheetMsg = document.getElementById('sheetMsg')
+
     function initSheetUrl(){
       const v = localStorage.getItem('ADMIN_SHEET_URL') || ''
       if (sheetUrlInput) sheetUrlInput.value = v
@@ -141,6 +193,7 @@
       }
     }
     initSheetUrl()
+
     if (sheetUrlSaveBtn) sheetUrlSaveBtn.addEventListener('click', () => {
       const v = (sheetUrlInput && sheetUrlInput.value || '').trim()
       try {
@@ -158,206 +211,82 @@
         sheetMsg.className = 'ml-3 text-sm text-red-700'
       }
     })
+
+    // --- Sync Sheets Logic ---
+    const syncSheetsBtn = document.getElementById('syncSheetsBtn')
+    const syncMsg = document.getElementById('syncMsg')
+    
+    if (syncSheetsBtn) syncSheetsBtn.addEventListener('click', async () => {
+      const ok = confirm('This will OVERWRITE the Google Sheet with data from MongoDB. Continue?')
+      if (!ok) return
+      
+      syncMsg.textContent = 'Syncing...'
+      syncMsg.className = 'ml-3 text-sm text-gray-700'
+      
+      const base = getApiBase() || ''
+      const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
+      
+      try {
+        const res = await fetch(url)
+        const json = await res.json()
+        if (res.ok && json.success) {
+          syncMsg.textContent = 'Sync Successful!'
+          syncMsg.className = 'ml-3 text-sm text-green-700'
+        } else {
+          throw new Error(json.message || 'Failed')
+        }
+      } catch (e) {
+        syncMsg.textContent = 'Sync Failed: ' + e.message
+        syncMsg.className = 'ml-3 text-sm text-red-700'
+      }
+    })
+
+    // --- Load Data Logic ---
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
-      status.textContent = 'Loading...'
+      if (!isUnlocked) return
+
+      status.textContent = 'Loading data from MongoDB...'
       status.className = 'text-gray-700'
       tbody.innerHTML = ''
+
+      const base = getApiBase() || ''
+      // If base is set, use it. If not, try relative (works if on Vercel, or if proxied).
+      // If on GitHub Pages and no base set, relative /api/enroll/all will fail (404).
+      const url = base ? new URL('/api/enroll/all', base).toString() : '/api/enroll/all'
+
       try {
-        const resRel = await fetch('/api/registrations', { cache: 'no-cache' })
-        if (resRel.ok) {
-          const jsonRel = await resRel.json()
-          if (jsonRel && jsonRel.success && Array.isArray(jsonRel.rows)) {
-            status.textContent = `${jsonRel.rows.length} records (API)`
-            for (const r of jsonRel.rows) {
-              const tr = document.createElement('tr')
-              tr.innerHTML = `
-                <td class="px-3 py-2">${r.reg_no || ''}</td>
-                <td class="px-3 py-2">${r.timestamp || ''}</td>
-                <td class="px-3 py-2">${r.type || ''}</td>
-                <td class="px-3 py-2">${r.enrollment_no || ''}</td>
-                <td class="px-3 py-2">${r.name || ''}</td>
-                <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
-                <td class="px-3 py-2">${r.age || ''}</td>
-                <td class="px-3 py-2">${r.employee_no || ''}</td>
-                <td class="px-3 py-2">${r.last_class || ''}</td>
-                <td class="px-3 py-2">${r.org_name || ''}</td>
-                <td class="px-3 py-2">${r.org_addr || ''}</td>
-                <td class="px-3 py-2">${r.parent_name || ''}</td>
-                <td class="px-3 py-2">${r.parent_phone || ''}</td>
-                <td class="px-3 py-2">${r.student_name || ''}</td>
-                <td class="px-3 py-2">${r.student_class || ''}</td>
-                <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
-              `
-              tbody.appendChild(tr)
-            }
-            return
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`API Error: ${res.status}`)
+        const json = await res.json()
+        
+        if (json.success && Array.isArray(json.data)) {
+          status.textContent = `${json.data.length} records found (MongoDB)`
+          status.className = 'text-green-700'
+          
+          for (const r of json.data) {
+            const tr = document.createElement('tr')
+            tr.innerHTML = `
+              <td class="px-3 py-2 border-b">${r.enrollmentId || ''}</td>
+              <td class="px-3 py-2 border-b">${r.studentName || ''}</td>
+              <td class="px-3 py-2 border-b">${r.phone || ''}</td>
+              <td class="px-3 py-2 border-b">${r.email || ''}</td>
+              <td class="px-3 py-2 border-b">${r.sector || ''}</td>
+              <td class="px-3 py-2 border-b">${r.employeeNumber || ''}</td>
+              <td class="px-3 py-2 border-b text-xs text-gray-500">${r.timestamp || ''}</td>
+            `
+            tbody.appendChild(tr)
           }
-        }
-      } catch(_) {}
-      const base = getApiBase()
-      try {
-        if (base) {
-          const url = new URL('/api/registrations', base).toString()
-          const res = await fetch(url, { cache: 'no-cache' })
-          if (res.ok) {
-            const json = await res.json()
-            if (json && json.success && Array.isArray(json.rows)) {
-              status.textContent = `${json.rows.length} records (API)`
-              for (const r of json.rows) {
-                const tr = document.createElement('tr')
-                tr.innerHTML = `
-                  <td class="px-3 py-2">${r.reg_no || ''}</td>
-                  <td class="px-3 py-2">${r.timestamp || ''}</td>
-                  <td class="px-3 py-2">${r.type || ''}</td>
-                  <td class="px-3 py-2">${r.enrollment_no || ''}</td>
-                  <td class="px-3 py-2">${r.name || ''}</td>
-                  <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
-                  <td class="px-3 py-2">${r.age || ''}</td>
-                  <td class="px-3 py-2">${r.employee_no || ''}</td>
-                  <td class="px-3 py-2">${r.last_class || ''}</td>
-                  <td class="px-3 py-2">${r.org_name || ''}</td>
-                  <td class="px-3 py-2">${r.org_addr || ''}</td>
-                  <td class="px-3 py-2">${r.parent_name || ''}</td>
-                  <td class="px-3 py-2">${r.parent_phone || ''}</td>
-                  <td class="px-3 py-2">${r.student_name || ''}</td>
-                  <td class="px-3 py-2">${r.student_class || ''}</td>
-                  <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
-                `
-                tbody.appendChild(tr)
-              }
-              return
-            }
-          }
-        }
-      } catch(_) {}
-      try {
-        const list = JSON.parse(localStorage.getItem('registrations') || '[]')
-        status.textContent = `${list.length} records (localStorage)`
-        for (const r of list) {
-          const tr = document.createElement('tr')
-          tr.innerHTML = `
-            <td class="px-3 py-2">${r.reg_no || ''}</td>
-            <td class="px-3 py-2">${r.timestamp || ''}</td>
-            <td class="px-3 py-2">${r.type || ''}</td>
-            <td class="px-3 py-2">${r.enrollment_no || ''}</td>
-            <td class="px-3 py-2">${r.name || ''}</td>
-            <td class="px-3 py-2">${r.phone || r.parent_phone || ''}</td>
-            <td class="px-3 py-2">${r.age || ''}</td>
-            <td class="px-3 py-2">${r.employee_no || ''}</td>
-            <td class="px-3 py-2">${r.last_class || ''}</td>
-            <td class="px-3 py-2">${r.org_name || ''}</td>
-            <td class="px-3 py-2">${r.org_addr || ''}</td>
-            <td class="px-3 py-2">${r.parent_name || ''}</td>
-            <td class="px-3 py-2">${r.parent_phone || ''}</td>
-            <td class="px-3 py-2">${r.student_name || ''}</td>
-            <td class="px-3 py-2">${r.student_class || ''}</td>
-            <td class="px-3 py-2">${Array.isArray(r.competitions) ? r.competitions.join(', ') : (r.competitions || '')}</td>
-          `
-          tbody.appendChild(tr)
+        } else {
+          throw new Error(json.message || 'Invalid response')
         }
       } catch (e) {
-        status.textContent = 'Unable to read localStorage'
+        console.error(e)
+        status.textContent = 'Unable to fetch data. Ensure "Backend Settings" URL is correct.'
         status.className = 'text-red-700'
       }
     }
-    loadData()
-    window.addEventListener('registrations-updated', loadData)
-
-    const delBtn = document.getElementById('deleteAll')
-    if (delBtn) delBtn.addEventListener('click', async () => {
-      const status = document.getElementById('status')
-      if (!isUnlocked) { showLocked(); return }
-      const ok = confirm('Clear ALL local registrations?')
-      if (!ok) return
-      try { localStorage.removeItem('registrations'); status.textContent = 'Cleared'; status.className = 'text-green-700'; await loadData() }
-      catch (_) { status.textContent = 'Unable to clear'; status.className = 'text-red-700' }
-    })
-
-    const rosterAddBtn = document.getElementById('rosterAddBtn')
-    if (rosterAddBtn) rosterAddBtn.addEventListener('click', async () => {
-      const msg = document.getElementById('rosterMsg')
-      if (!isUnlocked) { msg.textContent = 'Enter Admin PIN'; msg.className = 'ml-3 text-sm text-red-700'; return }
-      msg.textContent = 'No backend configured'
-      msg.className = 'ml-3 text-sm text-gray-700'
-    })
-
-    function parseCsv(text) {
-      const lines = text.split(/\r?\n/).filter(Boolean)
-      if (!lines.length) return []
-      const headers = lines[0].split(',').map(h => h.trim())
-      const rows = []
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].match(/((?:^|,)(?:"(?:[^"]|"")*"|[^,]*))/g) || []
-        const cells = parts.map(s => s.replace(/^,/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
-        const obj = {}
-        headers.forEach((h, idx) => { obj[h] = cells[idx] || '' })
-        rows.push(obj)
-      }
-      return rows
-    }
-
-    async function sendRosterRows(rows) { return { okCount: 0, failCount: rows.length } }
-
-    const rosterUploadBtn = document.getElementById('rosterUploadBtn')
-    if (rosterUploadBtn) rosterUploadBtn.addEventListener('click', async () => {
-      const fileInput = document.getElementById('rosterFile')
-      const msg = document.getElementById('rosterUploadMsg')
-      if (!isUnlocked) { msg.textContent = 'Enter Admin PIN'; msg.className = 'ml-3 text-sm text-red-700'; return }
-      msg.textContent = ''
-      msg.className = 'ml-3 text-sm'
-      const file = fileInput && fileInput.files && fileInput.files[0]
-      if (!file) { msg.textContent = 'Choose a file'; msg.className += ' text-red-700'; return }
-      try {
-        const name = file.name.toLowerCase()
-        const text = await file.text()
-        let rows = []
-        if (name.endsWith('.json')) {
-          const data = JSON.parse(text)
-          rows = Array.isArray(data) ? data : (Array.isArray(data.rows) ? data.rows : [])
-        } else {
-          rows = parseCsv(text)
-        }
-        if (!rows.length) { msg.textContent = 'No rows found'; msg.className += ' text-red-700'; return }
-        const res = await sendRosterRows(rows)
-        msg.textContent = `Uploaded: ${res.okCount}, Failed: ${res.failCount}`
-        msg.className += ' text-gray-700'
-      } catch (_) { msg.textContent = 'Invalid file'; msg.className += ' text-red-700' }
-    })
-    const regNext = document.getElementById('regNext')
-    const setNextBtn = document.getElementById('setNextBtn')
-    const renumberBtn = document.getElementById('renumberBtn')
-    const regNoMsg = document.getElementById('regNoMsg')
-    function pad(n){ return String(n).padStart(6,'0') }
-    function initReg(){
-      let c = 1
-      try { c = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch(_) {}
-      if (regNext) regNext.value = String(c)
-    }
-    initReg()
-    if (setNextBtn) setNextBtn.addEventListener('click', () => {
-      if (!isUnlocked) { regNoMsg.textContent = 'Enter Admin PIN'; regNoMsg.className = 'ml-3 text-sm text-red-700'; return }
-      const v = parseInt(regNext.value || '1', 10) || 1
-      try { localStorage.setItem('reg_counter', String(v)); regNoMsg.textContent = 'Saved'; regNoMsg.className = 'ml-3 text-sm text-green-700' } catch(_) { regNoMsg.textContent = 'Unable to save'; regNoMsg.className = 'ml-3 text-sm text-red-700' }
-    })
-    if (renumberBtn) renumberBtn.addEventListener('click', async () => {
-      if (!isUnlocked) { regNoMsg.textContent = 'Enter Admin PIN'; regNoMsg.className = 'ml-3 text-sm text-red-700'; return }
-      const start = parseInt(regNext.value || '1', 10) || 1
-      try {
-        const list = JSON.parse(localStorage.getItem('registrations') || '[]')
-        let i = start
-        for (const r of list) { r.reg_no = `REG-${pad(i)}`; i++ }
-        localStorage.setItem('registrations', JSON.stringify(list))
-        localStorage.setItem('reg_counter', String(i))
-        regNoMsg.textContent = 'Renumbered'
-        regNoMsg.className = 'ml-3 text-sm text-green-700'
-        await loadData()
-      } catch(_) {
-        regNoMsg.textContent = 'Unable to renumber'
-        regNoMsg.className = 'ml-3 text-sm text-red-700'
-      }
-    })
   </script>
-  </body>
-  </html>
+</body>
+</html>
