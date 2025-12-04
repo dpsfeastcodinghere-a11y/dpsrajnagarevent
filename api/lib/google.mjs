@@ -62,6 +62,18 @@ export async function overwriteSheet(sheetId, range, values, token) {
     // 2. Update
     const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}?valueInputOption=RAW`
     const res = await fetch(updateUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ values }) })
-    return res.ok
-  } catch (_) { return false }
+    
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('Google Sheets Update Error:', err)
+      // Return the specific error message from Google
+      throw new Error(`Google Sheets Error: ${res.status} ${err}`)
+    }
+    
+    return true
+  } catch (e) { 
+    console.error('Overwrite failed:', e)
+    // Re-throw so the caller knows why
+    throw e 
+  }
 }

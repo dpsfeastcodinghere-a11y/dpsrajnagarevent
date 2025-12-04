@@ -65,10 +65,11 @@ export default async function handler(req, res) {
     }
 
     // Overwrite Sheet1!A:G
-    const ok = await overwriteSheet(sheetId, 'Sheet1!A:G', allValues, token);
-
-    if (!ok) {
-      return res.status(500).json({ success: false, message: 'Failed to overwrite Google Sheet' });
+    try {
+      const ok = await overwriteSheet(sheetId, 'Sheet1!A:G', allValues, token);
+      // Note: overwriteSheet now throws on error, so if we get here, it worked.
+    } catch (e) {
+      return res.status(500).json({ success: false, message: e.message || 'Failed to overwrite Google Sheet' });
     }
 
     return res.status(200).json({
