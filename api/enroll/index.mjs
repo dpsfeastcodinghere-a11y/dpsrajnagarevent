@@ -1,8 +1,4 @@
-import { mongoRequest } from '../lib/mongo.mjs';
 import { getGoogleCreds, getGoogleAccessToken, appendToSheet } from '../lib/google.mjs';
-
-const DATABASE = 'school_portal';
-const COLLECTION = 'enrollment_data';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,80 +14,55 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
+  const payload = req.body;
+  if (!payload) {
+    return res.status(400).json({ success: false, message: 'No data' });
+  }
+
+  // 1. Get Sheet ID (From Env or Body)
+  // Priority: Body (Admin Override) -> Env (Server Config)
+  let sheetId = process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID;
+  if (payload.sheetId) {
+    const match = payload.sheetId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (match) sheetId = match[1];
+    else sheetId = payload.sheetId;
+  }
+
+  if (!sheetId) {
+    // Fallback: If no sheet ID, we can't save centrally.
+    // Return success so the client can save to LocalStorage at least.
+    // But warn in logs.
+    console.warn('No GOOGLE_SHEETS_ID configured. Data not saved to Sheets.');
+    return res.status(200).json({ success: false, message: 'Server Config Missing: GOOGLE_SHEETS_ID' });
+  }
+
+  // 2. Prepare Row
+  // Headers assumed: Enrollment ID | Student Name | Phone | Email | Sector | Employee No | Timestamp | Raw Data
+  const row = [
+    payload.enrollmentId || payload.enrollment_no || '',
+    payload.studentName || payload.name || payload.student_name || payload.parent_name || '',
+    payload.phone || payload.parent_phone || '',
+    payload.email || '',
+    payload.sector || payload.type || '',
+    payload.employeeNumber || payload.employee_no || '',
+    new Date().toISOString(),
+    JSON.stringify(payload)
+  ];
+
   try {
-    const { enrollmentId, studentName, phone, email, sector, employeeNumber } = req.body || {};
+    const creds = getGoogleCreds();
+    if (!creds) throw new Error('Service Account Credentials Missing');
+    const token = await getGoogleAccessToken(creds, 'https://www.googleapis.com/auth/spreadsheets');
+    if (!token) throw new Error('Failed to get Google Access Token');
 
-    // Validation
-    if (!enrollmentId || !studentName || !phone || !email || !sector || !employeeNumber) {
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    const ok = await appendToSheet(sheetId, 'Sheet1!A:H', [row], token);
+    if (ok) {
+      return res.status(200).json({ success: true });
+    } else {
+      throw new Error('Failed to append to Sheet');
     }
-
-    if (!/^\d{10}$/.test(phone)) {
-      return res.status(400).json({ success: false, message: 'Phone must be 10 digits' });
-    }
-
-    // Check Uniqueness
-    const existing = await mongoRequest('findOne', {
-      filter: { enrollmentId }
-    }, { database: DATABASE, collection: COLLECTION });
-
-    if (existing.document) {
-      return res.status(409).json({ success: false, message: 'Enrollment ID already exists' });
-    }
-
-    const timestamp = new Date().toISOString();
-    const newDoc = {
-      enrollmentId,
-      studentName,
-      phone,
-      email,
-      sector,
-      employeeNumber,
-      timestamp
-    };
-
-    // Insert into Mongo
-    await mongoRequest('insertOne', {
-      document: newDoc
-    }, { database: DATABASE, collection: COLLECTION });
-
-    // Append to Google Sheets
-    let sheetWarning = null;
-    try {
-      const sheetId = process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID;
-      if (sheetId) {
-        const creds = getGoogleCreds();
-        if (creds) {
-          const token = await getGoogleAccessToken(creds, 'https://www.googleapis.com/auth/spreadsheets');
-          if (token) {
-            const row = [
-              enrollmentId,
-              studentName,
-              phone,
-              email,
-              sector,
-              employeeNumber,
-              timestamp
-            ];
-            // Append to Sheet1!A:G
-            const ok = await appendToSheet(sheetId, 'Sheet1!A:G', [row], token);
-            if (!ok) sheetWarning = 'Failed to write to Google Sheets';
-          } else sheetWarning = 'Google Auth Failed';
-        } else sheetWarning = 'Google Credentials missing';
-      } else sheetWarning = 'GOOGLE_SHEETS_ID not set';
-    } catch (e) {
-      sheetWarning = 'Google Sheets Error: ' + e.message;
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Enrollment successful',
-      data: newDoc,
-      warning: sheetWarning
-    });
-
   } catch (error) {
-    console.error(error);
+    console.error('Sheet Save Error:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }

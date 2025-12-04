@@ -54,13 +54,12 @@
 
       <div class="mb-4 rounded-md border border-blue-200 bg-white p-4">
         <div class="flex items-center justify-between mb-2">
-          <div class="text-blue-900 font-semibold">Sync Actions</div>
+          <div class="text-blue-900 font-semibold">Data Actions</div>
         </div>
         <div class="flex items-center gap-3">
-          <button id="syncSheetsBtn" class="rounded-md bg-yellow-600 px-3 py-1.5 text-white font-semibold hover:bg-yellow-700">Sync Mongo to Sheets</button>
-          <span id="syncMsg" class="ml-3 text-sm"></span>
+          <button id="refreshBtn" class="rounded-md bg-blue-600 px-3 py-1.5 text-white font-semibold hover:bg-blue-700">Refresh Data</button>
         </div>
-        <div class="text-xs text-gray-600 mt-2">Warning: This overwrites the entire Google Sheet with data from MongoDB.</div>
+        <div class="text-xs text-gray-600 mt-2">Fetches latest data from Google Sheets.</div>
       </div>
 
       <div class="overflow-x-auto rounded-md border border-gray-200 bg-white">
@@ -216,60 +215,30 @@
       }
     })
 
-    // --- Sync Sheets Logic ---
-    const syncSheetsBtn = document.getElementById('syncSheetsBtn')
-    const syncMsg = document.getElementById('syncMsg')
-    
-    if (syncSheetsBtn) syncSheetsBtn.addEventListener('click', async () => {
-      const ok = confirm('This will OVERWRITE the Google Sheet with data from MongoDB. Continue?')
-      if (!ok) return
-      
-      syncMsg.textContent = 'Syncing...'
-      syncMsg.className = 'ml-3 text-sm text-gray-700'
-      
-      const base = getApiBase() || ''
-      const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
-      const sheetUrl = (sheetUrlInput && sheetUrlInput.value) || localStorage.getItem('ADMIN_SHEET_URL') || ''
-      
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sheetId: sheetUrl })
-        })
-        const json = await res.json()
-        if (res.ok && json.success) {
-          syncMsg.textContent = 'Sync Successful!'
-          syncMsg.className = 'ml-3 text-sm text-green-700'
-        } else {
-          throw new Error(json.message || 'Failed')
-        }
-      } catch (e) {
-        console.error(e)
-        if (e.message === 'Failed to fetch') {
-          syncMsg.textContent = 'Connection Failed. Check "Backend Settings" URL.'
-          alert('Error: Could not connect to the server.\n\n1. Check "Backend Settings" above.\n2. Ensure the URL is your active Vercel deployment (e.g., https://your-app.vercel.app).')
-        } else {
-          syncMsg.textContent = 'Sync Failed: ' + e.message
-        }
-        syncMsg.className = 'ml-3 text-sm text-red-700'
-      }
-    })
-
     // --- Load Data Logic ---
+    const refreshBtn = document.getElementById('refreshBtn')
+    if(refreshBtn) refreshBtn.addEventListener('click', loadData)
+
     async function loadData(){
       const status = document.getElementById('status')
       const tbody = document.getElementById('rows')
       if (!isUnlocked) return
 
-      status.textContent = 'Loading data from MongoDB...'
+      status.textContent = 'Loading data from Google Sheets...'
       status.className = 'text-gray-700'
       tbody.innerHTML = ''
 
       const base = getApiBase() || ''
-      // If base is set, use it. If not, try relative (works if on Vercel, or if proxied).
-      // If on GitHub Pages and no base set, relative /api/enroll/all will fail (404).
-      const url = base ? new URL('/api/enroll/all', base).toString() : '/api/enroll/all'
+      // Use the sheetId from config if available
+      const sheetId = (sheetUrlInput && sheetUrlInput.value) || localStorage.getItem('ADMIN_SHEET_URL') || ''
+      
+      let url = base ? new URL('/api/enroll/all', base).toString() : '/api/enroll/all'
+      // Append sheetId to query if we have it
+      if (sheetId) {
+        const u = new URL(url, window.location.href)
+        u.searchParams.set('sheetId', sheetId)
+        url = u.toString()
+      }
 
       try {
         const res = await fetch(url)
@@ -277,7 +246,7 @@
         const json = await res.json()
         
         if (json.success && Array.isArray(json.data)) {
-          status.textContent = `${json.data.length} records found (MongoDB)`
+          status.textContent = `${json.data.length} records found`
           status.className = 'text-green-700'
           
           for (const r of json.data) {
@@ -298,7 +267,7 @@
         }
       } catch (e) {
         console.error(e)
-        status.textContent = 'Unable to fetch data. Ensure "Backend Settings" URL is correct.'
+        status.textContent = 'Unable to fetch data. Ensure "Backend Settings" URL is correct and Sheet ID is set.'
         status.className = 'text-red-700'
       }
     }

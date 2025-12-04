@@ -713,22 +713,26 @@
       payload.reg_no = reg_no
       
       
+      // --- Save Logic (API + Fallback) ---
       async function saveToNetlify() {
-        try {
-          const res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-          const json = await res.json().catch(() => ({}))
-          if (res.ok && json && json.success) return { success: true, duplicate: false }
-          if (json && json.duplicate) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
-        } catch(_) {}
         const base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
+        
+        // 1. Try API (Google Sheets)
         if (base) {
           try {
-            const url = new URL('/api/registrations', base).toString()
-            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            const url = new URL('/api/enroll', base).toString()
+            // Add Sheet ID from config if available
+            const sheetId = localStorage.getItem('ADMIN_SHEET_URL') || ''
+            
+            const res = await fetch(url, { 
+              method: 'POST', 
+              headers: { 'Content-Type': 'application/json' }, 
+              body: JSON.stringify({ ...payload, sheetId }) 
+            })
             const json = await res.json().catch(() => ({}))
-            if (res.ok && json && json.success) return { success: true, duplicate: false }
-            if (json && json.duplicate) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
-          } catch (_) {}
+            if (res.ok && json.success) return { success: true, duplicate: false }
+            // Simple error handling
+          } catch (e) { console.log('API failed, fallback to local', e) }
         }
         try {
           const raw = localStorage.getItem('registrations')
@@ -1157,23 +1161,22 @@
         const base = getApiBase()
         if (base) {
           try {
-            // Try MongoDB endpoint first
-            const url = new URL('/api/enroll/all', base).toString()
+            // Use the Sheet ID from config if set
+            const sheetId = localStorage.getItem('ADMIN_SHEET_URL') || ''
+            
+            let url = new URL('/api/enroll/all', base).toString()
+            if (sheetId) {
+              const u = new URL(url)
+              u.searchParams.set('sheetId', sheetId)
+              url = u.toString()
+            }
+
             const res = await fetch(url, { cache: 'no-cache' })
             if (res.ok) {
               const json = await res.json()
               if (json && json.success && Array.isArray(json.data)) return json.data
             }
-          } catch(_) {}
-
-          try {
-            const url = new URL('/api/registrations', base).toString()
-            const res = await fetch(url, { cache: 'no-cache' })
-            if (res.ok) {
-              const json = await res.json()
-              if (json && json.success && Array.isArray(json.rows)) return json.rows
-            }
-          } catch(_) {}
+          } catch(e) { console.error(e) }
         }
         return getLocalRegistrations()
       }

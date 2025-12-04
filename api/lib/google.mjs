@@ -78,3 +78,21 @@ export async function overwriteSheet(sheetId, range, values, token) {
     throw e 
   }
 }
+
+// Read rows from a sheet
+export async function readSheet(sheetId, range, token) {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent(range)}`
+    const res = await fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } })
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('Google Sheets Read Error:', err)
+      throw new Error(`Google Sheets Error: ${res.status} ${err}`)
+    }
+    const json = await res.json()
+    return json.values || []
+  } catch (e) {
+    console.error('Read failed:', e)
+    throw e
+  }
+}
