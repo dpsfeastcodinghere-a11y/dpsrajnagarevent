@@ -915,6 +915,24 @@
       
       
       <div class="mb-2 border-t border-blue-100 pt-2">
+        <div class="text-xs font-bold text-gray-500 mb-1 uppercase">Configuration</div>
+        <div class="space-y-2">
+          <div>
+            <input id="apiBaseInput" class="w-full rounded-md border border-blue-300 px-2 py-1 text-xs" placeholder="Backend URL (e.g. https://...)" />
+            <button id="apiBaseSaveBtn" class="mt-1 w-full rounded-md bg-blue-600 px-2 py-1 text-white text-xs hover:bg-blue-700">Save Backend URL</button>
+          </div>
+          <div>
+            <input id="sheetUrlInput" class="w-full rounded-md border border-blue-300 px-2 py-1 text-xs" placeholder="Google Sheets Link" />
+            <button id="sheetUrlSaveBtn" class="mt-1 w-full rounded-md bg-green-600 px-2 py-1 text-white text-xs hover:bg-green-700">Save Sheet Link</button>
+          </div>
+          <div>
+            <button id="syncSheetsBtn" class="w-full rounded-md bg-yellow-600 px-2 py-1 text-white text-xs font-bold hover:bg-yellow-700">Sync Mongo to Sheets</button>
+            <div id="configMsg" class="text-[10px] text-center mt-1 h-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-2 border-t border-blue-100 pt-2">
         <div class="text-xs font-bold text-gray-500 mb-1 uppercase">Quick Actions</div>
         <div class="grid grid-cols-2 gap-2">
           <button id="exportBtn" class="rounded-md bg-green-600 px-2 py-1.5 text-white text-xs font-semibold hover:bg-green-700">Excel (.xlsx)</button>
@@ -998,6 +1016,54 @@
       
       const verifyInput = document.getElementById('verifyInput')
       const verifyBtn = document.getElementById('verifyBtn')
+      
+      // --- Config Logic ---
+      const apiBaseInput = document.getElementById('apiBaseInput')
+      const apiBaseSaveBtn = document.getElementById('apiBaseSaveBtn')
+      const sheetUrlInput = document.getElementById('sheetUrlInput')
+      const sheetUrlSaveBtn = document.getElementById('sheetUrlSaveBtn')
+      const syncSheetsBtn = document.getElementById('syncSheetsBtn')
+      const configMsg = document.getElementById('configMsg')
+
+      function initConfig() {
+        if(apiBaseInput) apiBaseInput.value = getApiBase()
+        if(sheetUrlInput) sheetUrlInput.value = localStorage.getItem('ADMIN_SHEET_URL') || ''
+      }
+      initConfig()
+
+      function showMsg(msg, color='text-green-700') {
+        if(configMsg) { configMsg.textContent = msg; configMsg.className = `text-[10px] text-center mt-1 h-3 ${color}` }
+        setTimeout(() => { if(configMsg) configMsg.textContent = '' }, 3000)
+      }
+
+      if(apiBaseSaveBtn) apiBaseSaveBtn.addEventListener('click', () => {
+        const val = (apiBaseInput && apiBaseInput.value || '').trim()
+        if(val) localStorage.setItem('API_BASE', val)
+        else localStorage.removeItem('API_BASE')
+        showMsg('Backend URL Saved')
+        refreshStatus()
+      })
+
+      if(sheetUrlSaveBtn) sheetUrlSaveBtn.addEventListener('click', () => {
+        const val = (sheetUrlInput && sheetUrlInput.value || '').trim()
+        if(val) localStorage.setItem('ADMIN_SHEET_URL', val)
+        else localStorage.removeItem('ADMIN_SHEET_URL')
+        showMsg('Sheet Link Saved')
+      })
+
+      if(syncSheetsBtn) syncSheetsBtn.addEventListener('click', async () => {
+        const ok = confirm('Overwrite Google Sheet with MongoDB data?')
+        if(!ok) return
+        showMsg('Syncing...', 'text-blue-700')
+        const base = getApiBase()
+        const url = base ? new URL('/api/sync-sheets', base).toString() : '/api/sync-sheets'
+        try {
+          const res = await fetch(url)
+          const json = await res.json()
+          if(res.ok && json.success) showMsg('Sync Successful!')
+          else showMsg('Sync Failed', 'text-red-700')
+        } catch(e) { showMsg('Error: ' + e.message, 'text-red-700') }
+      })
       const verifyResult = document.getElementById('verifyResult')
 
       
@@ -1015,13 +1081,13 @@
         const found = rows.find(r => {
           const reg = String(r['reg_no'] || r['Reg No'] || r['Registration No'] || '').toLowerCase()
           const phone = String(r['phone'] || r['Parent Phone'] || r['parent_phone'] || '').toLowerCase()
-          const enroll = String(r['enrollment_no'] || r['Enrollment No'] || '').toLowerCase()
+          const enroll = String(r['enrollment_no'] || r['Enrollment No'] || r['enrollmentId'] || '').toLowerCase()
           return reg.includes(query) || phone.includes(query) || enroll.includes(query)
         })
 
         if (found) {
-          const name = found['name'] || found['Name'] || found['Student Name'] || found['Parent Name'] || found['student_name'] || 'Unknown'
-          const cat = found['category'] || found['Category'] || found['type'] || 'Unknown'
+          const name = found['name'] || found['Name'] || found['Student Name'] || found['Parent Name'] || found['student_name'] || found['studentName'] || 'Unknown'
+          const cat = found['category'] || found['Category'] || found['type'] || found['sector'] || 'Unknown'
           const compsRaw = found['competitions'] || found['Competitions'] || ''
           const comps = Array.isArray(compsRaw) ? compsRaw.join(', ') : compsRaw
           verifyResult.className = 'p-2 rounded-md text-sm bg-green-50 border border-green-200 text-green-800 mb-2'
@@ -1076,6 +1142,16 @@
       async function fetchRegistrations(){
         const base = getApiBase()
         if (base) {
+          try {
+            // Try MongoDB endpoint first
+            const url = new URL('/api/enroll/all', base).toString()
+            const res = await fetch(url, { cache: 'no-cache' })
+            if (res.ok) {
+              const json = await res.json()
+              if (json && json.success && Array.isArray(json.data)) return json.data
+            }
+          } catch(_) {}
+
           try {
             const url = new URL('/api/registrations', base).toString()
             const res = await fetch(url, { cache: 'no-cache' })
