@@ -1,63 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DPS Carnival Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { dps: { blue: '#1e3a8a', gold: '#fbbf24' } } } } }
+  </script>
+  <style>
+    body { background-color: #f9fafb; font-family: 'Inter', sans-serif; }
+    .ticket-card { background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 20px 20px; }
+  </style>
+</head>
+<body>
+  <header class="bg-dps-blue text-white py-4 px-6 shadow-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-dps-blue font-bold text-xl">D</div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">DPS Rajnagar Extension</h1>
+          <p class="text-xs text-dps-gold">Carnival 2025 Registration</p>
+        </div>
+      </div>
+    </div>
+  </header>
 
-      // Modified saveToNetlify to include Google Sheets logic via API
-      async function saveToNetlify() {
-        const base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
+  <main class="max-w-4xl mx-auto p-4 md:p-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-200 overflow-x-auto">
+        <button class="flex-1 py-3 px-4 text-sm font-medium text-dps-blue border-b-2 border-dps-blue whitespace-nowrap" id="tab-student">Student</button>
+        <button class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" id="tab-parent">Parent</button>
+        <button class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" id="tab-employee">Employee</button>
+        <button class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" id="tab-alumni">Alumni</button>
+        <button class="flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" id="tab-others">Others</button>
+      </div>
+
+      <!-- Form Container -->
+      <div class="p-6">
+        <form id="regForm" class="space-y-6">
+          
+          <!-- Dynamic Fields -->
+          <div id="fieldsContainer" class="space-y-4"></div>
+
+          <!-- Competitions -->
+          <div class="pt-4 border-t border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Select Competitions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700" id="compList">
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-walk-nur-lkg-ukg"> <span>Walk with Mom/Dad (Nursery, LKG, UKG)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-poem-nur-lkg-ukg"> <span>Poem Recitation (Nursery, LKG, UKG)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-dress-g1-g2"> <span>Dress up like a story character (Grade 1–2)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-art-g1-g3"> <span>Art competition (Grade 1-3)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-art-g4-g6"> <span>Art competition (Grade 4-6)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-art-g7-g9"> <span>Art competition (Grade 7-9)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-talent-g1-g2-g3"> <span>Talent Show (Grade 1–3)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-talent-g4-g5-g6"> <span>Talent Show (Grade 4–6)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-talent-g7-g8-g9"> <span>Talent Show (Grade 7–9)</span></label>
+              <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" class="mt-1 rounded text-dps-blue" id="comp-none"> <span>No competitions</span></label>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-dps-blue text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition-colors shadow-lg">Generate Ticket</button>
+          </div>
+        </form>
+
+        <!-- Result Area -->
+        <div id="resultContainer" class="mt-6"></div>
+      </div>
+    </div>
+
+    <!-- Ticket Card (Hidden initially) -->
+    <div id="qrCard" class="hidden mt-8 bg-white p-6 rounded-xl border-2 border-dps-gold ticket-card relative overflow-hidden max-w-sm mx-auto">
+      <div class="absolute top-0 left-0 w-full h-2 bg-dps-blue"></div>
+      <div class="text-center mb-4">
+        <h2 class="text-xl font-bold text-dps-blue">DPS Carnival 2025</h2>
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Official Entry Ticket</p>
+      </div>
+      <div class="flex justify-center mb-4 bg-white p-2 rounded-lg border border-gray-100 inline-block mx-auto">
+        <div id="qrCanvas"></div>
+      </div>
+      <div id="qrDetails" class="text-center space-y-1 mb-4"></div>
+      <div class="text-center">
+        <p class="text-[10px] text-gray-400">Please show this QR code at the entrance.</p>
+      </div>
+      <div class="absolute bottom-0 left-0 w-full h-2 bg-dps-gold"></div>
+    </div>
+    
+    <div class="mt-4 text-center">
+      <button id="downloadBtn" class="hidden inline-flex items-center gap-2 text-dps-blue font-semibold hover:underline">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download Ticket
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Verify Section (Bottom) -->
+  <div class="max-w-4xl mx-auto px-6 pb-12">
+    <div class="mt-8 border-t border-gray-200 pt-6">
+      <h3 class="text-center text-gray-500 text-sm font-medium mb-4">Need to find your ticket?</h3>
+      <div class="flex gap-2 max-w-md mx-auto">
+        <input type="text" id="verifyInput" placeholder="Enter Phone or Enrollment No" class="flex-1 rounded-md border-gray-300 shadow-sm px-3 py-2 text-sm border focus:border-dps-blue focus:ring-1 focus:ring-dps-blue outline-none">
+        <button id="verifyBtn" class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-900">Search</button>
+      </div>
+      <div id="studentNameFallback" class="hidden max-w-md mx-auto mt-2">
+        <input type="text" id="studentNameFallbackInput" placeholder="Student Name (if not found)" class="w-full rounded-md border-gray-300 shadow-sm px-3 py-2 text-sm border outline-none">
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Button -->
+  <div class="fixed bottom-4 right-4 flex flex-col gap-2" style="z-index:1000">
+    <button id="adminBtn" onclick="location.href='../admin/admin.html'" class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 shadow-lg">Admin</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    // --- State ---
+    let currentType = 'student'
+    let currentPayload = null
+    let studentsRows = null
+
+    // --- DOM Elements ---
+    const tabs = {
+      student: document.getElementById('tab-student'),
+      parent: document.getElementById('tab-parent'),
+      employee: document.getElementById('tab-employee'),
+      alumni: document.getElementById('tab-alumni'),
+      others: document.getElementById('tab-others')
+    }
+    const fieldsContainer = document.getElementById('fieldsContainer')
+    const compNone = document.getElementById('comp-none')
+    const allComps = document.querySelectorAll('input[type="checkbox"][id^="comp-"]')
+
+    // --- Tab Switching ---
+    function switchTab(type) {
+      currentType = type
+      // Update Tab Styles
+      Object.keys(tabs).forEach(k => {
+        const t = tabs[k]
+        if (k === type) {
+          t.className = 'flex-1 py-3 px-4 text-sm font-medium text-dps-blue border-b-2 border-dps-blue whitespace-nowrap'
+        } else {
+          t.className = 'flex-1 py-3 px-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap'
+        }
+      })
+      renderFields()
+    }
+
+    Object.keys(tabs).forEach(k => tabs[k].addEventListener('click', (e) => { e.preventDefault(); switchTab(k) }))
+
+    // --- Dynamic Fields Render ---
+    function renderFields() {
+      let html = ''
+      if (currentType === 'student') {
+        html = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Enrollment Number *</label>
+            <input type="text" name="enrollment_no" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue" placeholder="e.g. 12345">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Student Name *</label>
+            <input type="text" name="name" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue" placeholder="Full Name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+            <input type="text" name="student_class" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue" placeholder="e.g. 5-A">
+          </div>
+        `
+      } else if (currentType === 'parent') {
+        html = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parent Name *</label>
+            <input type="text" name="parent_name" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parent Phone *</label>
+            <input type="tel" name="parent_phone" required pattern="[0-9]{10}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue" placeholder="10-digit mobile">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Parent Age</label>
+            <input type="number" name="parent_age" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Child Name</label>
+              <input type="text" name="student_name" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Child Class</label>
+              <input type="text" name="student_class" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+            </div>
+          </div>
+        `
+      } else if (currentType === 'employee') {
+        html = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Employee Number *</label>
+            <input type="text" name="employee_no" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input type="text" name="name" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+        `
+      } else if (currentType === 'alumni') {
+        html = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <input type="text" name="name" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Last Class at DPS RN</label>
+            <input type="text" name="last_class" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue" placeholder="e.g. 12 (2020)">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Presently Working/Studying At</label>
+            <input type="text" name="org_name" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <input type="text" name="org_addr" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+        `
+      } else { // Others
+        html = `
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <input type="text" name="name" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+            <input type="tel" name="phone" required pattern="[0-9]{10}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+            <input type="number" name="age" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-dps-blue">
+          </div>
+        `
+      }
+      fieldsContainer.innerHTML = html
+    }
+    renderFields()
+
+    // --- Competitions Logic ---
+    if (compNone) {
+      compNone.addEventListener('change', () => {
+        if (compNone.checked) {
+          allComps.forEach(c => { if(c !== compNone) c.checked = false })
+        }
+      })
+    }
+    allComps.forEach(c => {
+      if (c !== compNone) {
+        c.addEventListener('change', () => { if (c.checked && compNone) compNone.checked = false })
+      }
+    })
+
+    // --- Form Submission ---
+    const regForm = document.getElementById('regForm')
+    const resultContainer = document.getElementById('resultContainer')
+    const downloadBtn = document.getElementById('downloadBtn')
+
+    if (regForm) {
+      regForm.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const formData = new FormData(regForm)
+        const data = Object.fromEntries(formData.entries())
+        currentPayload = data // Store for ticket generation
+
+        // Gather competitions
+        const comps = Array.from(allComps).filter(c => c.checked && c.id !== 'comp-none').map(c => c.nextElementSibling.innerText)
         
-        // 1. Try saving via Vercel API (which handles MongoDB + Google Sheets)
-        if (base) {
-          try {
-            const url = new URL('/api/enroll', base).toString()
-            // Convert payload to match API spec
-            const apiPayload = {
-              enrollmentId: payload.enrollment_no || payload.employee_no || payload.phone || payload.parent_phone || ('UNK-' + Date.now()),
-              studentName: payload.name || payload.student_name || payload.parent_name || 'Unknown',
-              phone: payload.phone || payload.parent_phone || '0000000000',
-              email: 'no-email@provided.com', // Placeholder as frontend doesn't capture email yet
-              sector: 'allimi sector', // Default per request
-              employeeNumber: payload.employee_no || 'N/A'
-            }
-            
-            const res = await fetch(url, { 
-              method: 'POST', 
-              headers: { 'Content-Type': 'application/json' }, 
-              body: JSON.stringify(apiPayload) 
-            })
-            
-            const json = await res.json().catch(() => ({}))
-            if (res.ok && json.success) {
-              // If API save worked, we consider it done.
-              return { success: true, duplicate: false }
-            }
-            if (res.status === 409 || (json && json.duplicate)) {
-              return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
-            }
-          } catch (_) {
-            console.log('API save failed, falling back to local storage')
-          }
+        // Build Payload for API
+        const apiPayload = {
+          enrollmentId: data.enrollment_no || data.employee_no || data.phone || data.parent_phone || ('UNK-' + Date.now()),
+          studentName: data.name || data.student_name || data.parent_name || 'Unknown',
+          phone: data.phone || data.parent_phone || '0000000000',
+          email: 'no-email@provided.com',
+          sector: 'allimi sector',
+          employeeNumber: data.employee_no || 'N/A'
         }
 
-        // 2. Fallback: Save to LocalStorage if API fails or not configured
+        // Call saveToNetlify (now updated to use API)
+        const result = await saveToNetlify(apiPayload, comps)
+        
+        if (result.success) {
+          resultContainer.innerHTML = `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered Successfully!</div></div>`
+          renderQrTicket(data, comps)
+        } else if (result.duplicate) {
+          resultContainer.innerHTML = `<div class="rounded-md bg-yellow-50 p-4 border border-yellow-100"><div class="text-yellow-800 font-medium">Already registered (ID: ${result.existingRegNo})</div></div>`
+        } else {
+          resultContainer.innerHTML = `<div class="rounded-md bg-red-50 p-4 border border-red-100"><div class="text-red-800 font-medium">Registration Failed</div></div>`
+        }
+      })
+    }
+
+    // --- Save Logic (API + Fallback) ---
+    async function saveToNetlify(payload, comps) {
+      const base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
+      
+      // 1. Try API
+      if (base) {
         try {
-          const raw = localStorage.getItem('registrations')
-          const list = raw ? JSON.parse(raw) : []
-          const isDup = (a, b) => {
-            if (!a || !b) return false
-            const eq = (x, y) => String(x || '').trim().toLowerCase() === String(y || '').trim().toLowerCase()
-            if (a.enrollment_no && b.enrollment_no && eq(a.enrollment_no, b.enrollment_no)) return true
-            if (a.phone && b.phone && eq(a.phone, b.phone)) return true
-            if (a.parent_phone && b.parent_phone && eq(a.parent_phone, b.parent_phone)) return true
-            if (a.employee_no && b.employee_no && eq(a.employee_no, b.employee_no)) return true
-            const an = (a.name || a.student_name || '').trim().toLowerCase()
-            const bn = (b.name || b.student_name || '').trim().toLowerCase()
-            const al = (a.last_class || a.student_class || '').trim().toLowerCase()
-            const bl = (b.last_class || b.student_class || '').trim().toLowerCase()
-            if (an && bn && al && bl && an === bn && al === bl) return true
-            return false
-          }
-          const existing = list.find(item => isDup(item, payload))
-          if (existing) return { success: false, duplicate: true, existingRegNo: existing.reg_no || '' }
-          list.push(payload)
-          localStorage.setItem('registrations', JSON.stringify(list))
-          return { success: true, duplicate: false }
-        } catch (_) { return { success: false, duplicate: false } }
+          const url = new URL('/api/enroll', base).toString()
+          const res = await fetch(url, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+          })
+          const json = await res.json().catch(() => ({}))
+          if (res.ok && json.success) return { success: true, duplicate: false }
+          if (res.status === 409 || (json && json.duplicate)) return { success: false, duplicate: true, existingRegNo: json.existingRegNo || '' }
+        } catch (_) { console.log('API failed, fallback to local') }
       }
+
+      // 2. Fallback LocalStorage
+      try {
+        const raw = localStorage.getItem('registrations')
+        const list = raw ? JSON.parse(raw) : []
+        // Simple dup check
+        const existing = list.find(i => i.enrollmentId === payload.enrollmentId)
+        if (existing) return { success: false, duplicate: true, existingRegNo: existing.enrollmentId }
+        
+        list.push({ ...payload, competitions: comps, timestamp: new Date().toISOString() })
+        localStorage.setItem('registrations', JSON.stringify(list))
+        return { success: true, duplicate: false }
+      } catch (_) { return { success: false, duplicate: false } }
+    }
+
+    // --- QR & Ticket Logic ---
+    function renderQrTicket(data, comps) {
+      const qrCanvas = document.getElementById('qrCanvas')
+      const qrDetails = document.getElementById('qrDetails')
+      const qrCard = document.getElementById('qrCard')
+      
+      // Clear previous
+      qrCanvas.innerHTML = ''
+      qrDetails.innerHTML = ''
+
+      // Generate Text
+      const qrText = `ID:${data.enrollment_no || data.phone}|NAME:${data.name || data.parent_name}|TYPE:${currentType}`
+      new QRCode(qrCanvas, { text: qrText, width: 128, height: 128 })
+
+      // Details
+      qrDetails.innerHTML = `
+        <div class="font-bold text-lg">${data.name || data.parent_name}</div>
+        <div class="text-sm">${data.enrollment_no || data.phone || ''}</div>
+        <div class="text-xs mt-2 text-gray-500">${comps.length} Competitions</div>
+      `
+      
+      qrCard.classList.remove('hidden')
+      downloadBtn.classList.remove('hidden')
+    }
+
+    // --- Verification Logic ---
+    const verifyBtn = document.getElementById('verifyBtn')
+    const verifyInput = document.getElementById('verifyInput')
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', () => {
+        const val = verifyInput.value.trim()
+        if (!val) return alert('Enter ID')
+        
+        // Check Local First
+        const list = JSON.parse(localStorage.getItem('registrations') || '[]')
+        const found = list.find(i => i.enrollmentId === val || i.phone === val)
+        
+        if (found) {
+          alert(`Found Locally: ${found.studentName}`)
+        } else {
+          alert('Not found locally (Check Admin/API)')
+        }
+      })
+    }
+
+  </script>
+</body>
+</html>
