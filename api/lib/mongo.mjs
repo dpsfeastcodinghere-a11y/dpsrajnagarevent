@@ -1,3 +1,4 @@
+import 'dotenv/config';
 
 const API_URL = process.env.MONGO_DATA_API_URL;
 const API_KEY = process.env.MONGO_DATA_API_KEY;
