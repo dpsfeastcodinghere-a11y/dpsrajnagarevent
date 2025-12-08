@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const result = await query('SELECT data, created_at FROM registrations ORDER BY created_at DESC');
     
     // 3. Flatten Data
-    const rows = result.rows.map(row => {
+    const rawRows = result.rows.map(row => {
       const d = row.data || {};
       // Ensure common fields are at top level for the frontend table
       return {
@@ -39,9 +39,29 @@ export default async function handler(req, res) {
       };
     });
 
+    // 4. Deduplicate
+    // Priority: Enrollment ID -> Employee No -> Phone
+    const seen = new Set();
+    const uniqueRows = [];
+
+    for (const row of rawRows) {
+      let key = null;
+      if (row.enrollmentId) key = `student:${row.enrollmentId}`;
+      else if (row.employeeNumber) key = `employee:${row.employeeNumber}`;
+      else if (row.phone) key = `phone:${row.phone}`;
+      else if (row.studentName && row.sector) key = `name:${row.studentName}:${row.sector}`; // Fallback
+
+      if (key) {
+        key = key.trim().toLowerCase();
+        if (seen.has(key)) continue; // Skip duplicate
+        seen.add(key);
+      }
+      uniqueRows.push(row);
+    }
+
     return res.status(200).json({
       success: true,
-      data: rows
+      data: uniqueRows
     });
 
   } catch (error) {
