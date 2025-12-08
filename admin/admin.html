@@ -182,8 +182,8 @@
       status.className = 'text-gray-700'
       tbody.innerHTML = ''
 
-      const base = getApiBase() || ''
-      const url = base ? new URL('/api/enroll/all', base).toString() : '/api/enroll/all'
+      const base = (getApiBase() || '').replace(/\/$/, '') // Remove trailing slash
+      const url = base ? `${base}/api/enroll/all` : '/api/enroll/all'
       
       try {
         const res = await fetch(url)
@@ -212,8 +212,11 @@
         }
       } catch (e) {
         console.error(e)
-        status.textContent = 'Unable to fetch data. Ensure "Backend Settings" URL is correct.'
+        status.textContent = 'Connection Failed. Check "Backend Settings" URL.'
         status.className = 'text-red-700'
+        if (!base && window.location.hostname === 'localhost') {
+            alert('LOCAL ADMIN DETECTED:\n\nYou must configure the "Backend Settings" above to point to your live Vercel site (e.g. https://your-app.vercel.app).\n\nOtherwise, this local page cannot see the database.')
+        }
       }
     }
   </script>
