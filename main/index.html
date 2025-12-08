@@ -715,25 +715,28 @@
       
       // --- Save Logic (API + Fallback) ---
       async function saveToNetlify() {
-        const base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
+        // Try to get base from storage, or default to relative path
+        let base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
         
-        // 1. Try API (Google Sheets)
-        if (base) {
-          try {
-            const url = new URL('/api/enroll', base).toString()
-            // Add Sheet ID from config if available
-            const sheetId = localStorage.getItem('ADMIN_SHEET_URL') || ''
-            
-            const res = await fetch(url, { 
-              method: 'POST', 
-              headers: { 'Content-Type': 'application/json' }, 
-              body: JSON.stringify({ ...payload, sheetId }) 
-            })
-            const json = await res.json().catch(() => ({}))
-            if (res.ok && json.success) return { success: true, duplicate: false }
-            // Simple error handling
-          } catch (e) { console.log('API failed, fallback to local', e) }
+        try {
+          // Always try to send to API
+          const url = base ? new URL('/api/enroll', base).toString() : '/api/enroll'
+          
+          const res = await fetch(url, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+          })
+          
+          const json = await res.json().catch(() => ({}))
+          if (res.ok && json.success) return { success: true, duplicate: false }
+          // If server says duplicate or error, handle it? 
+          // For now, if API fails, we fall back to local storage just in case
+        } catch (e) { 
+          console.log('API failed, fallback to local', e) 
         }
+
+        // Fallback to LocalStorage (for offline support or if API fails)
         try {
           const raw = localStorage.getItem('registrations')
           const list = raw ? JSON.parse(raw) : []
