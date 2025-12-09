@@ -806,12 +806,9 @@
       else if (currentType === 'alumni') { payload.name = currentPayload.name; payload.last_class = currentPayload.last_class; payload.org_name = currentPayload.org_name; payload.org_addr = currentPayload.org_addr }
       else { payload.name = currentPayload.name; payload.age = currentPayload.age; payload.phone = currentPayload.phone }
       // Only send to Google Sheets via Apps Script
-      let counter = 1
-      try { counter = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch (_) { }
-      const pad = n => String(n).padStart(6, '0')
-      const reg_no = `REG-${pad(counter)}`
+      // Use server-ID based registration number
+      let reg_no = 'PENDING'
       payload.reg_no = reg_no
-
 
       // --- Save Logic (API + Fallback) ---
       async function saveToNetlify() {
@@ -823,23 +820,32 @@
           const url = base ? new URL('/api/enroll', base).toString() : '/api/enroll'
 
           // Send to Local DB / API
+          // We send payload without a final reg_no first (or with 'PENDING')
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           })
 
-          // Send to Formspree (Added as per request)
-          try {
-            fetch('https://formspree.io/f/xqardwbl', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            }).then(r => console.log('Formspree status:', r.status)).catch(e => console.error('Formspree error:', e))
-          } catch (_) { }
-
           const json = await res.json().catch(() => ({}))
-          if (res.ok && json.success) return { success: true, duplicate: false }
+
+          if (res.ok && json.success && json.id) {
+            // Generate Reg No from Server ID
+            const pad = n => String(n).padStart(6, '0')
+            reg_no = `REG-${pad(json.id)}`
+            payload.reg_no = reg_no // Update payload
+
+            // Send to Formspree (Now with correct ID)
+            try {
+              fetch('https://formspree.io/f/xqardwbl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              }).then(r => console.log('Formspree status:', r.status)).catch(e => console.error('Formspree error:', e))
+            } catch (_) { }
+
+            return { success: true, duplicate: false, reg_no: reg_no }
+          }
           // If server says duplicate or error, handle it? 
           // For now, if API fails, we fall back to local storage just in case
         } catch (e) {
@@ -866,9 +872,27 @@
           }
           const existing = list.find(item => isDup(item, payload))
           if (existing) return { success: false, duplicate: true, existingRegNo: existing.reg_no || '' }
+
+          // Generate local ID if server failed
+          let counter = 1
+          try { counter = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch (_) { }
+          const pad = n => String(n).padStart(6, '0')
+          reg_no = `REG-LOC-${pad(counter)}`
+          payload.reg_no = reg_no
+
           list.push(payload)
           localStorage.setItem('registrations', JSON.stringify(list))
-          return { success: true, duplicate: false }
+          // Send to Formspree (Fallback with local ID)
+          try {
+            fetch('https://formspree.io/f/xqardwbl', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            }).then(r => console.log('Formspree status:', r.status)).catch(e => console.error('Formspree error:', e))
+          } catch (_) { }
+
+          try { localStorage.setItem('reg_counter', String(counter + 1)) } catch (_) { }
+          return { success: true, duplicate: false, reg_no: reg_no }
         } catch (_) { return { success: false, duplicate: false } }
       }
 
@@ -879,6 +903,7 @@
         return
       }
       const ok = netlifyRes && netlifyRes.success
+      if (ok && netlifyRes.reg_no) reg_no = netlifyRes.reg_no
 
 
 
@@ -886,7 +911,7 @@
         ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
         : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`
       if (ok) {
-        try { localStorage.setItem('reg_counter', String(counter + 1)); window.dispatchEvent(new Event('registrations-updated')) } catch (_) { }
+        try { window.dispatchEvent(new Event('registrations-updated')) } catch (_) { }
       }
       if (currentType === 'student') {
         details.innerHTML = `
