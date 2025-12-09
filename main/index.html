@@ -1,5 +1,6 @@
-<!DOCTYPE html>q
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,22 +11,70 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Rye&display=swap" rel="stylesheet">
   <style>
-    body { background: radial-gradient(circle at 20% 10%, #fffdf5 0, #fffdf5 40%, #fef7e6 100%); }
-    .sunburst { background-image: repeating-conic-gradient(rgba(185,28,28,0.06) 0deg, rgba(185,28,28,0.06) 15deg, transparent 15deg, transparent 30deg); background-size: 120% 120%; opacity: 0.8; }
-    .ticket { background: #fffdf5; box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-radius: 18px; position: relative; }
-    .ticket:before { content: ""; position: absolute; inset: -2px; border-radius: 20px; padding: 2px; background: linear-gradient(135deg, #b91c1c, #1e3a8a); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-    .cutouts:before, .cutouts:after { content: ""; position: absolute; width: 22px; height: 22px; background: radial-gradient(circle at 50% 50%, transparent 12px, #fffdf5 13px); z-index: 2; }
-    .cutouts:before { top: -11px; left: -11px; border-radius: 50%; }
-    .cutouts:after { bottom: -11px; right: -11px; border-radius: 50%; }
-    .title-font { font-family: 'Rye', cursive; }
+    body {
+      background: radial-gradient(circle at 20% 10%, #fffdf5 0, #fffdf5 40%, #fef7e6 100%);
+    }
+
+    .sunburst {
+      background-image: repeating-conic-gradient(rgba(185, 28, 28, 0.06) 0deg, rgba(185, 28, 28, 0.06) 15deg, transparent 15deg, transparent 30deg);
+      background-size: 120% 120%;
+      opacity: 0.8;
+    }
+
+    .ticket {
+      background: #fffdf5;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 18px;
+      position: relative;
+    }
+
+    .ticket:before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 20px;
+      padding: 2px;
+      background: linear-gradient(135deg, #b91c1c, #1e3a8a);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .cutouts:before,
+    .cutouts:after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: radial-gradient(circle at 50% 50%, transparent 12px, #fffdf5 13px);
+      z-index: 2;
+    }
+
+    .cutouts:before {
+      top: -11px;
+      left: -11px;
+      border-radius: 50%;
+    }
+
+    .cutouts:after {
+      bottom: -11px;
+      right: -11px;
+      border-radius: 50%;
+    }
+
+    .title-font {
+      font-family: 'Rye', cursive;
+    }
   </style>
 </head>
+
 <body class="min-h-screen">
   <div class="sunburst absolute inset-0 pointer-events-none"></div>
   <header class="py-6 px-6 max-w-5xl mx-auto flex items-center gap-4">
     <img src="image.png" alt="DPS Rajnagar Logo" class="h-14 w-auto" onerror="this.style.display='none'">
     <div>
-      <h1 class="text-3xl md:text-4xl tracking-tight text-red-800 font-bold" style="font-family: Arial, Helvetica, sans-serif;">DPS Rajnagar, Ghaziabad 'समन्वय हाट' - Carnival 2025</h1>
+      <h1 class="text-3xl md:text-4xl tracking-tight text-red-800 font-bold"
+        style="font-family: Arial, Helvetica, sans-serif;">DPS Rajnagar, Ghaziabad 'समन्वय हाट' - Carnival 2025</h1>
       <p class="mt-1 text-sm md:text-base text-blue-900">Registration Form</p>
     </div>
   </header>
@@ -37,7 +86,8 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <label class="block text-sm font-medium text-blue-900">Category</label>
-              <select id="categorySelect" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+              <select id="categorySelect"
+                class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
                 <option>Student</option>
                 <option>Parent</option>
                 <option>Employee</option>
@@ -47,10 +97,12 @@
             </div>
             <div id="enrollmentGroup">
               <label class="block text-sm font-medium text-blue-900">Enrollment Number</label>
-              <input id="enrollmentInput" type="text" placeholder="Enter Enrollment No" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+              <input id="enrollmentInput" type="text" placeholder="Enter Enrollment No"
+                class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
               <div id="studentNameFallback" class="hidden mt-2">
                 <label class="block text-sm font-medium text-blue-900">Student Name (manual)</label>
-                <input id="studentNameFallbackInput" type="text" placeholder="Enter Student Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                <input id="studentNameFallbackInput" type="text" placeholder="Enter Student Name"
+                  class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 <div class="text-xs text-gray-500 mt-1">Shown when data file is missing</div>
               </div>
             </div>
@@ -58,16 +110,20 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Name</label>
-                  <input id="nameInput" type="text" placeholder="Enter Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="nameInput" type="text" placeholder="Enter Name"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Age</label>
-                  <input id="ageInput" type="number" min="0" placeholder="Enter Age" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="ageInput" type="number" min="0" placeholder="Enter Age"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Phone Number</label>
-                  <input id="phoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
-                  
+                  <input id="phoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+                    placeholder="Enter 10-digit Phone"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+
                 </div>
               </div>
             </div>
@@ -76,7 +132,8 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Employee ID</label>
-                  <input id="employeeNoInput" type="text" placeholder="Enter Employee ID" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="employeeNoInput" type="text" placeholder="Enter Employee ID"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
               </div>
             </div>
@@ -85,19 +142,25 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Name</label>
-                  <input id="alumniNameInput" type="text" placeholder="Enter Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="alumniNameInput" type="text" placeholder="Enter Name"
+                    class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label class="block text-base md:text-lg font-semibold text-blue-900">Last Class Studied at DPS RN</label>
-                  <input id="alumniLastClassInput" type="text" placeholder="Enter Last Class" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Last Class Studied at DPS
+                    RN</label>
+                  <input id="alumniLastClassInput" type="text" placeholder="Enter Last Class"
+                    class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label class="block text-base md:text-lg font-semibold text-blue-900">Name of Organisation Presently Working/Studying </label>
-                  <input id="alumniOrgNameInput" type="text" placeholder="Enter Organisation/Institution Name" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <label class="block text-base md:text-lg font-semibold text-blue-900">Name of Organisation Presently
+                    Working/Studying </label>
+                  <input id="alumniOrgNameInput" type="text" placeholder="Enter Organisation/Institution Name"
+                    class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Address of Organisation</label>
-                  <input id="alumniOrgAddrInput" type="text" placeholder="Enter Address" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="alumniOrgAddrInput" type="text" placeholder="Enter Address"
+                    class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
               </div>
             </div>
@@ -105,21 +168,26 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Parent Name</label>
-                  <input id="parentNameInput" type="text" placeholder="Enter Parent Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="parentNameInput" type="text" placeholder="Enter Parent Name"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
-                
+
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Parent Phone</label>
-                  <input id="parentPhoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit Phone" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
-                  
+                  <input id="parentPhoneInput" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+                    placeholder="Enter 10-digit Phone"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+
                 </div>
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Student Name</label>
-                  <input id="studentNameInput" type="text" placeholder="Enter Student Name" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <input id="studentNameInput" type="text" placeholder="Enter Student Name"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label class="block text-base md:text-lg font-semibold text-blue-900">Student Class</label>
-                  <select id="studentClassInput" class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+                  <select id="studentClassInput"
+                    class="mt-1 w-full md:w-2/3 lg:w-1/2 rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
                     <option value="">Select Class</option>
                     <option>Nursery</option>
                     <option>Prep 1</option>
@@ -141,24 +209,47 @@
               </div>
             </div>
             <div class="md:col-span-3">
-              <button id="submitBtn" class="mt-3 inline-flex items-center justify-center rounded-md bg-yellow-500 px-4 py-2 text-lg text-blue-900 font-bold hover:bg-yellow-400 w-auto">Submit</button>
+              <button id="submitBtn"
+                class="mt-3 inline-flex items-center justify-center rounded-md bg-yellow-500 px-4 py-2 text-lg text-blue-900 font-bold hover:bg-yellow-400 w-auto">Submit</button>
             </div>
             <div id="competitionsSection" class="hidden md:col-span-3 mt-4">
               <div class="text-sm font-semibold text-red-800">Register for Competitions (optional)</div>
               <div class="mt-2 space-y-2 text-blue-900">
-                <label class="flex items-start gap-2"><input id="compWalkNurLkgUkg" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Walk with Mom/Dad (Nursery, LKG, UKG)</span></label>
-                <label class="flex items-start gap-2"><input id="compPoemNurLkgUkg" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Poem Recitation (Nursery, LKG, UKG)</span></label>
-                <label class="flex items-start gap-2"><input id="compDressG1G2" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Dress up like a story character (Grade 1–2)</span></label>
-                <label class="flex items-start gap-2"><input id="compArtG1G3" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 1-3)</span></label>
-                <label class="flex items-start gap-2"><input id="compArtG4G6" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 4-6)</span></label>
-                <label class="flex items-start gap-2"><input id="compArtG7G9" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade 7-9)</span></label>
-                <label class="flex items-start gap-2"><input id="compTalentG1G2G3" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 1–3)</span></label>
-                <label class="flex items-start gap-2"><input id="compTalentG4G5G6" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 4–6)</span></label>
-                <label class="flex items-start gap-2"><input id="compTalentG7G8G9" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade 7–9)</span></label>
-                <label class="flex items-start gap-2"><input id="compNone" type="checkbox" class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>No competitions</span></label>
-                <div class="text-xs text-blue-900 mt-2">For talent shows, participants will bring their own material; only the stage will be provided.</div>
-                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 1-3), children have to bring their own pencil, eraser and crayons.</div>
-                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 4-9), children have to bring their own pencil, eraser and watercolors.</div>
+                <label class="flex items-start gap-2"><input id="compWalkNurLkgUkg" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Walk with Mom/Dad (Nursery, LKG,
+                    UKG)</span></label>
+                <label class="flex items-start gap-2"><input id="compPoemNurLkgUkg" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Poem Recitation (Nursery, LKG,
+                    UKG)</span></label>
+                <label class="flex items-start gap-2"><input id="compDressG1G2" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Dress up like a story character
+                    (Grade 1–2)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG1G3" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade
+                    1-3)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG4G6" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade
+                    4-6)</span></label>
+                <label class="flex items-start gap-2"><input id="compArtG7G9" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Art competition (Grade
+                    7-9)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG1G2G3" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade
+                    1–3)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG4G5G6" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade
+                    4–6)</span></label>
+                <label class="flex items-start gap-2"><input id="compTalentG7G8G9" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>Talent Show (Grade
+                    7–9)</span></label>
+                <label class="flex items-start gap-2"><input id="compNone" type="checkbox"
+                    class="mt-1 rounded border-blue-300 focus:ring-blue-500"> <span>No competitions</span></label>
+                <div class="text-xs text-blue-900 mt-2">For talent shows, participants will bring their own material;
+                  only the stage will be provided.</div>
+                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 1-3), children have to bring their
+                  own pencil, eraser and crayons.</div>
+                <div class="text-xs text-blue-900 mt-1">For art competition (Grade 4-9), children have to bring their
+                  own pencil, eraser and watercolors.</div>
               </div>
             </div>
           </div>
@@ -168,7 +259,9 @@
             </table>
           </div>
           <div class="mt-4">
-            <button id="qrBtn" class="hidden inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">Generate QR Code</button>
+            <button id="qrBtn"
+              class="hidden inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">Generate
+              QR Code</button>
           </div>
           <div id="qrCard" class="hidden mt-4 ticket cutouts p-6">
             <div class="flex items-center gap-4">
@@ -191,7 +284,9 @@
             </div>
           </div>
           <div class="mt-2">
-            <button id="downloadBtn" class="hidden inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Download Ticket</button>
+            <button id="downloadBtn"
+              class="hidden inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-white font-semibold hover:bg-green-700">Download
+              Ticket</button>
           </div>
         </div>
       </div>
@@ -206,26 +301,31 @@
       <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-green-900">Enrollment No</label>
-          <input id="addEnrollment" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+          <input id="addEnrollment"
+            class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
         </div>
         <div>
           <label class="block text-sm font-medium text-green-900">Category</label>
-          <select id="addCategory" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
+          <select id="addCategory"
+            class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500">
             <option>Current Student (DPS Rajnagar)</option>
             <option>Others</option>
           </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-green-900">Father Name</label>
-          <input id="addFather" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+          <input id="addFather"
+            class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
         </div>
         <div>
           <label class="block text-sm font-medium text-green-900">Mother Name</label>
-          <input id="addMother" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+          <input id="addMother"
+            class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
         </div>
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-green-900">Sibling Name</label>
-          <input id="addSibling" class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
+          <input id="addSibling"
+            class="mt-1 w-full rounded-md border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500" />
         </div>
       </div>
       <div class="mt-6 flex justify-end gap-3">
@@ -238,7 +338,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    
+
     const categorySelect = document.getElementById('categorySelect')
     const enrollmentInput = document.getElementById('enrollmentInput')
     const enrollmentGroup = document.getElementById('enrollmentGroup')
@@ -273,11 +373,11 @@
     const compTalentG7G8G9 = document.getElementById('compTalentG7G8G9')
     const compNone = document.getElementById('compNone')
     const downloadBtn = document.getElementById('downloadBtn')
-    
+
 
     let currentType = null
     let currentPayload = null
-    
+
 
     let studentsRows = null
     let studentFileUrl = null
@@ -291,15 +391,15 @@
         'STUDENT LIST AS ON 1.12.25.xlsx',
         'admin/student data.xlsx',
         'student data.xlsx',
-        'admin/student.xlsx','admin/student.xls','admin/student.xl',
-        'student.xlsx','student.xls','student.xl'
+        'admin/student.xlsx', 'admin/student.xls', 'admin/student.xl',
+        'student.xlsx', 'student.xls', 'student.xl'
       ]
       for (const url of candidates) {
         try {
           const tryUrl = new URL(url, window.location.href).toString()
           const res = await fetch(tryUrl, { cache: 'no-cache' })
           if (res.ok) { studentFileUrl = tryUrl; return studentFileUrl }
-        } catch (_) {}
+        } catch (_) { }
       }
       throw new Error('Data file not found')
     }
@@ -315,7 +415,7 @@
     }
     async function ensureStudentsLoadedStable() {
       if (studentsRows) return
-      const candidates = ['main/roster.json','main/students.json','roster.json','students.json']
+      const candidates = ['main/roster.json', 'main/students.json', 'roster.json', 'students.json']
       for (const url of candidates) {
         try {
           const res = await fetch(new URL(url, window.location.href).toString(), { cache: 'no-cache' })
@@ -324,7 +424,7 @@
             if (Array.isArray(data)) { studentsRows = data; return }
             if (data && Array.isArray(data.rows)) { studentsRows = data.rows; return }
           }
-        } catch(_) {}
+        } catch (_) { }
       }
     }
     async function ensureStudentsLoadedFallback() {
@@ -338,7 +438,7 @@
             return
           }
         }
-      } catch(_) {}
+      } catch (_) { }
     }
     function findStudentByEnrollment(enrollment_no) {
       if (!studentsRows) return null
@@ -369,7 +469,7 @@
       return null
     }
 
-    
+
 
     function normVal(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '') }
     function rowHas(rows, keyList, value) {
@@ -386,7 +486,7 @@
       }
       return false
     }
-    
+
     function updateTicket(data) {
       const body = document.getElementById('detailsBody')
       body.innerHTML = `
@@ -685,7 +785,7 @@
       const details = document.getElementById('qrDetails')
       const qrCanvas = document.getElementById('qrCanvas')
       const qrCard = document.getElementById('qrCard')
-      const comps = (function(){
+      const comps = (function () {
         if (compNone && compNone.checked) return []
         const items = []
         if (compWalkNurLkgUkg && compWalkNurLkgUkg.checked) items.push('Walk with Mom/Dad (Nursery, LKG, UKG)')
@@ -707,33 +807,43 @@
       else { payload.name = currentPayload.name; payload.age = currentPayload.age; payload.phone = currentPayload.phone }
       // Only send to Google Sheets via Apps Script
       let counter = 1
-      try { counter = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch (_) {}
+      try { counter = parseInt(localStorage.getItem('reg_counter') || '1', 10) || 1 } catch (_) { }
       const pad = n => String(n).padStart(6, '0')
       const reg_no = `REG-${pad(counter)}`
       payload.reg_no = reg_no
-      
-      
+
+
       // --- Save Logic (API + Fallback) ---
       async function saveToNetlify() {
         // Try to get base from storage, or default to relative path
-        let base = (function(){ try { return (localStorage.getItem('API_BASE') || '').trim() } catch(_) { return '' } })()
-        
+        let base = (function () { try { return (localStorage.getItem('API_BASE') || '').trim() } catch (_) { return '' } })()
+
         try {
           // Always try to send to API
           const url = base ? new URL('/api/enroll', base).toString() : '/api/enroll'
-          
-          const res = await fetch(url, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(payload) 
+
+          // Send to Local DB / API
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
           })
-          
+
+          // Send to Formspree (Added as per request)
+          try {
+            fetch('https://formspree.io/f/xqardwbl', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            }).then(r => console.log('Formspree status:', r.status)).catch(e => console.error('Formspree error:', e))
+          } catch (_) { }
+
           const json = await res.json().catch(() => ({}))
           if (res.ok && json.success) return { success: true, duplicate: false }
           // If server says duplicate or error, handle it? 
           // For now, if API fails, we fall back to local storage just in case
-        } catch (e) { 
-          console.log('API failed, fallback to local', e) 
+        } catch (e) {
+          console.log('API failed, fallback to local', e)
         }
 
         // Fallback to LocalStorage (for offline support or if API fails)
@@ -769,14 +879,14 @@
         return
       }
       const ok = netlifyRes && netlifyRes.success
-      
-      
-      
+
+
+
       resultContainer.innerHTML = ok
         ? `<div class="rounded-md bg-green-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Registered • No: ${reg_no}</div></div>`
         : `<div class="rounded-md bg-red-50 p-4 border border-green-100"><div class="text-green-800 font-medium">Unable to save registration</div></div>`
       if (ok) {
-        try { localStorage.setItem('reg_counter', String(counter + 1)); window.dispatchEvent(new Event('registrations-updated')) } catch (_) {}
+        try { localStorage.setItem('reg_counter', String(counter + 1)); window.dispatchEvent(new Event('registrations-updated')) } catch (_) { }
       }
       if (currentType === 'student') {
         details.innerHTML = `
@@ -894,5 +1004,6 @@
     if (downloadBtn) downloadBtn.addEventListener('click', downloadTicket)
     if (qrBtn) qrBtn.addEventListener('click', renderQrTicket)
   </script>
-  </body>
-  </html>
+</body>
+
+</html>

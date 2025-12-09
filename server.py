@@ -52,13 +52,13 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if self.path == '/.netlify/functions/save_to_db':
+        if self.path == '/.netlify/functions/save_to_db' or self.path == '/api/enroll':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             
             try:
                 data = json.loads(post_data.decode('utf-8'))
-                print(f"Received registration data: {data}")
+                print(f"Received registration data for {self.path}: {data}")
                 
                 # Connect to DB
                 conn = psycopg2.connect(DB_URL)
@@ -66,11 +66,44 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
                 
                 # Prepare values
                 enrollment_no = data.get('enrollment_no', '')
-                name = data.get('name') or data.get('student_name') or data.get('parent_name') or ''
+                # Handle different name fields based on category/payload type
+                name = ''
+                if 'name' in data: name = data['name']
+                elif 'student_name' in data: name = data['student_name']
+                elif 'parent_name' in data: name = data['parent_name']
+                elif 'employee_no' in data: name = f"Employee {data['employee_no']}" # Fallback
+                
                 category = data.get('category', 'Student')
+                # If category is not explicit, infer from data keys or context if needed? 
+                # The frontend sends 'type' maybe? Let's check. 
+                # Frontend payload has keys like 'enrollment_no', 'parent_name', etc.
+                # It doesn't seem to verify 'category' key in payload for all types.
+                # server.py line 70 defaulted to 'Student'.
+                # Let's try to infer if missing.
+                if not category or category == 'Student':
+                    if 'parent_name' in data: category = 'Parent'
+                    elif 'employee_no' in data: category = 'Employee'
+                    elif 'last_class' in data: category = 'Alumni'
+                    elif 'age' in data and 'phone' in data and 'name' in data and not 'enrollment_no' in data: category = 'Others'
+
                 phone = data.get('phone') or data.get('parent_phone') or ''
                 json_data = json.dumps(data)
                 
+                # Check if table exists, create if not (with robust schema)
+                # We do this once to ensure schema compliance
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS registrations (
+                        id SERIAL PRIMARY KEY,
+                        enrollment_no TEXT,
+                        name TEXT,
+                        category TEXT,
+                        phone TEXT,
+                        data JSONB,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """)
+                conn.commit()
+
                 query = """
                     INSERT INTO registrations (enrollment_no, name, category, phone, data, created_at)
                     VALUES (%s, %s, %s, %s, %s, NOW())
